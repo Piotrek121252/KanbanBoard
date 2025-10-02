@@ -1,13 +1,13 @@
 package pl.pwr.edu.KanbanBoard.dto;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.List;
-
-@Data
+@Getter
+@AllArgsConstructor
 public class ColumnDto {
-    private Long id;
+    private Integer id;
+    private Integer boardId;
     private String name;
-    private int position;
-    private List<TaskDto> tasks;
+    private Integer position;
 }

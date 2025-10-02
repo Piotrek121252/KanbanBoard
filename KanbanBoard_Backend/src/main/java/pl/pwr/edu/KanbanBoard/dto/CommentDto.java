@@ -7,12 +7,10 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class TaskDto {
+public class CommentDto {
     private Integer id;
-    private Integer columnId;
-    private String name;
-    private String description;
-    private Boolean isActive;
+    private Integer userId;
+    private Integer taskId;
+    private String comment;
     private LocalDateTime createdDate;
-    private LocalDateTime dueDate;
 }
