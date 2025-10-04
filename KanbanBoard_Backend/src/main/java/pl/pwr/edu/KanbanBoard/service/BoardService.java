@@ -18,10 +18,13 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final ColumnService columnService;
 
-    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
+
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository, ColumnService columnService) {
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
+        this.columnService = columnService;
     }
 
     public List<BoardDto> getAllBoards() {
@@ -46,6 +49,9 @@ public class BoardService {
         board.getMembers().add(currentUser);
 
         Board saved = boardRepository.save(board);
+
+        columnService.createDefaultColumns(saved);
+
         return toDto(saved);
     }
 
