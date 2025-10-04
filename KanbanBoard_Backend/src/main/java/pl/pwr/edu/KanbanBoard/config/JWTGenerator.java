@@ -22,10 +22,11 @@ public class JWTGenerator {
 
         String token = Jwts.builder()
                 .setSubject(username)
-                .setIssuedAt(new Date())
+                .setIssuedAt(currentDate)
                 .setExpiration(expireDate)
                 .signWith(key,SignatureAlgorithm.HS512)
                 .compact();
+        // TODO usunąć jak już będzie wszystko prawidłowo działać
         System.out.println("New token :");
         System.out.println(token);
         return token;
