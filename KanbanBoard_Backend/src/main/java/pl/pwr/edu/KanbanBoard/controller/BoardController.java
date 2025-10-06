@@ -1,9 +1,9 @@
 package pl.pwr.edu.KanbanBoard.controller;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import pl.pwr.edu.KanbanBoard.dto.Board.BoardDto;
 import pl.pwr.edu.KanbanBoard.dto.Board.CreateBoardDto;
@@ -13,29 +13,33 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/boards")
-@RequiredArgsConstructor
 public class BoardController {
 
-        private final BoardService boardService;
+    private final BoardService boardService;
 
-        @GetMapping
-        public List<BoardDto> getAllBoards() {
-            return boardService.getAllBoards();
-        }
+    @Autowired
+    public BoardController(BoardService boardService) {
+        this.boardService = boardService;
+    }
 
-        @GetMapping("/{id}")
-        public ResponseEntity<BoardDto> getBoardById(@PathVariable Integer id) {
-            return ResponseEntity.ok(boardService.getBoardById(id));
-        }
+    @GetMapping
+    public List<BoardDto> getAllBoards() {
+        return boardService.getAllBoards();
+    }
 
-        @PostMapping
-        public ResponseEntity<BoardDto> createBoard(@RequestBody CreateBoardDto createBoardDto, @AuthenticationPrincipal UserDetails userDetails) {
-            return ResponseEntity.ok(boardService.createBoard(createBoardDto, userDetails.getUsername()));
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<BoardDto> getBoardById(@PathVariable Integer id) {
+        return ResponseEntity.ok(boardService.getBoardById(id));
+    }
 
-        @DeleteMapping("/{id}")
-        public ResponseEntity<Void> deleteBoard(@PathVariable Integer id) {
-            boardService.deleteBoard(id);
-            return ResponseEntity.noContent().build();
-        }
+    @PostMapping
+    public ResponseEntity<BoardDto> createBoard(@RequestBody CreateBoardDto createBoardDto, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(boardService.createBoard(createBoardDto, user.getUsername()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBoard(@PathVariable Integer id) {
+        boardService.deleteBoard(id);
+        return ResponseEntity.noContent().build();
+    }
 }

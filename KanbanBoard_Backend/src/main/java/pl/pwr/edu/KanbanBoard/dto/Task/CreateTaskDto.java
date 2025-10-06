@@ -1,4 +1,4 @@
-package pl.pwr.edu.KanbanBoard.dto;
+package pl.pwr.edu.KanbanBoard.dto.Task;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,12 +7,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class TaskDto {
-    private Integer id;
-    private Integer columnId;
+public class CreateTaskDto {
     private String name;
     private String description;
-    private Boolean isActive;
-    private LocalDateTime createdDate;
     private LocalDateTime dueDate;
 }

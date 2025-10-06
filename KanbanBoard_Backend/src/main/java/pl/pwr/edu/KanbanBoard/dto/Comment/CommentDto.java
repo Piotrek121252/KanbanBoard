@@ -1,4 +1,4 @@
-package pl.pwr.edu.KanbanBoard.dto;
+package pl.pwr.edu.KanbanBoard.dto.Comment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CommentDto {
     private Integer id;
-    private Integer userId;
-    private Integer taskId;
     private String comment;
+    private String username;
     private LocalDateTime createdDate;
 }

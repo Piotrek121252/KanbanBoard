@@ -1,5 +1,6 @@
 package pl.pwr.edu.KanbanBoard.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.pwr.edu.KanbanBoard.dto.Column.ColumnDto;
@@ -17,11 +18,13 @@ public class ColumnController {
     private final BoardRepository boardRepository;
     private final ColumnService columnService;
 
+    @Autowired
     public ColumnController(BoardRepository boardRepository, ColumnService columnService) {
         this.boardRepository = boardRepository;
         this.columnService = columnService;
     }
 
+    @GetMapping
     public List<ColumnDto> getColumns(@PathVariable Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("Board not found"));
@@ -44,6 +47,7 @@ public class ColumnController {
         return columnService.updateColumn(columnId, dto.getName(), dto.getPosition());
     }
 
+    @DeleteMapping("/{columnId}")
     public ResponseEntity<Void> deleteColumn(@PathVariable Integer boardId,
                                              @PathVariable Integer columnId) {
         // TODO - walidacja czy columna należy do danej tablicy [column.getBoard().getId().equals(boardId)]

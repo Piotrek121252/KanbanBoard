@@ -48,7 +48,7 @@ public class Task {
     protected void onCreate() {
         this.createdDate = LocalDateTime.now();
         if (isActive == null) {
-            this.isActive = true; // default tasks as active
+            this.isActive = true;
         }
     }
 }
