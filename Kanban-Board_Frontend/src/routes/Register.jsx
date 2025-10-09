@@ -2,7 +2,6 @@ import { useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import Input from "../components/InputField.jsx";
 import axios from "axios";
-import Button from "../components/Button.jsx";
 import FormWrapper from "../components/FormWrapper.jsx";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -12,18 +11,15 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
-
-  const togglePassword = () => setShowPassword((prev) => !prev);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Hasła nie jest zgodne.");
+      setError("Hasła nie są zgodne.");
       return;
     }
 
@@ -38,77 +34,52 @@ const Register = () => {
       navigate("/login");
     } catch (err) {
       // Błąd podczas rejestracji
-      if (err.response && err.response.data) {
-        setError(err.response.data.message || "Błąd podczas rejestracji");
-      } else {
-        setError("Błąd podczas rejestracji");
-      }
+      setError(err.response.data.message || "Błąd podczas rejestracji");
     }
   };
 
   return (
-    <FormWrapper title="Register">
+    <FormWrapper title="Rejestracja">
       <form onSubmit={handleSubmit}>
         <Input
-          label="Username"
+          label="Nazwa użytkownika"
           required
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
         <Input
-          label="Email"
+          label="Adres email"
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <div className="relative">
-          <Input
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-          >
-            {showPassword ? (
-              <AiFillEyeInvisible size={20} />
-            ) : (
-              <AiFillEye size={20} />
-            )}
-          </button>
-        </div>
-        <div className="relative">
-          <Input
-            label="Confirm Password"
-            type={showPassword ? "text" : "password"}
-            required
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-          >
-            {showPassword ? (
-              <AiFillEyeInvisible size={20} />
-            ) : (
-              <AiFillEye size={20} />
-            )}
-          </button>
-        </div>
-        <Button type="submit">Register</Button>
+        <Input
+          label="Hasło"
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Input
+          label="Potwierdź hasło"
+          type="password"
+          required
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Zarejestruj się
+        </button>
       </form>
       {error && <p className="text-red-500 mt-2">{error}</p>}
       <p className="mt-4 text-sm text-center">
-        Already have an account?{" "}
+        Posiadasz już konto?{" "}
         <Link to="/login" className="text-blue-600 hover:underline">
-          Login
+          Zaloguj się
         </Link>
       </p>
     </FormWrapper>

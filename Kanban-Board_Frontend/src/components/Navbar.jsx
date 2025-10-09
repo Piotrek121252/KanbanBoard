@@ -24,6 +24,14 @@ const Navbar = () => {
           Home
         </Link>
         <Link
+          to="/boards"
+          className="py-1 px-3 text-lg font-light text-white
+           hover:text-sky-300 rounded-2xl hover:bg-slate-700
+            transition duration-300"
+        >
+          Boards
+        </Link>
+        <Link
           to="/kanban"
           className="py-1 px-3 text-lg font-light text-white
            hover:text-sky-300 rounded-2xl hover:bg-slate-700
