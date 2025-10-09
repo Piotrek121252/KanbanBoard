@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCookies } from "react-cookie";
 import axios from "axios";
 import Input from "../components/InputField.jsx";
 import FormWrapper from "../components/FormWrapper.jsx";
@@ -7,29 +8,43 @@ import { Link, useNavigate } from "react-router-dom";
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
 
+  const [cookie, setCookie] = useCookies(["token"]);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setStatus(null);
 
     try {
-      await axios.post("http://localhost:8080/api/auth/login", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/login",
+        {
+          username,
+          password,
+        }
+      );
+
+      const token = response.data.accessToken;
+
+      if (!token) throw new Error("Brak tokenu w odpowiedzi serwera");
+
+      setCookie("token", token, { path: "/", maxAge: 15 * 60 }); // Token przestaje być ważny po 15 minutach
+      // TODO: zastanowić się czy korzystać z axios.defauls
+      axios.defaults.headers.common["Authorization"] =
+        `${response.data.tokenType}${token}`;
 
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Błąd logowania");
+      alert(err);
+      setStatus(err || "Błąd logowania");
     }
   };
 
   return (
     <FormWrapper title="Login">
-      <form>
+      <form onSubmit={handleSubmit}>
         <Input
           label="Nazwa użytkownika"
           required
@@ -51,7 +66,7 @@ const Login = () => {
         </button>
       </form>
 
-      {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
+      {status && <p className="text-red-500 mt-2 text-center">{status}</p>}
 
       <p className="mt-4 text-sm text-center">
         Nie posiadasz jeszcze konta?{" "}
