@@ -1,60 +1,38 @@
-import React from "react";
 import { BiSolidDashboard } from "react-icons/bi";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const Navbar = () => {
+  const navLinks = [
+    { to: "/", label: "Home" },
+    { to: "/boards", label: "Boards" },
+    { to: "/kanban", label: "Kanban-Demo" },
+    { to: "/about", label: "About" },
+    { to: "/login", label: "Login" },
+  ];
+
   return (
-    <nav
-      className="bg-slate-800 shadow-lg flex items-center
-     justify-around py-3 px-32 fixed top-0 left-0 w-full"
-    >
-      <Link to="/">
-        <span className="font-semibold text-lg flex items-center gap-3 text-blue-400">
-          <BiSolidDashboard className="text-4xl" />
-          <span className="font-semibold text-2xl">TaskFlow</span>
-        </span>
+    <nav className="fixed top-0 left-0 w-full bg-slate-800 shadow-lg py-3 px-6 md:px-16 flex items-center justify-between z-50">
+      <Link to="/" className="flex items-center gap-2 text-blue-400">
+        <BiSolidDashboard className="text-3xl" />
+        <span className="text-2xl font-semibold">TaskFlow</span>
       </Link>
-      <div className="flex items-center gap-5 text-black">
-        <Link
-          to="/"
-          className="py-1 px-3 text-lg font-light text-white
-           hover:text-sky-300 rounded-2xl hover:bg-slate-700
-            transition duration-300"
-        >
-          Home
-        </Link>
-        <Link
-          to="/boards"
-          className="py-1 px-3 text-lg font-light text-white
-           hover:text-sky-300 rounded-2xl hover:bg-slate-700
-            transition duration-300"
-        >
-          Boards
-        </Link>
-        <Link
-          to="/kanban"
-          className="py-1 px-3 text-lg font-light text-white
-           hover:text-sky-300 rounded-2xl hover:bg-slate-700
-            transition duration-300"
-        >
-          Kanban-Demo
-        </Link>
-        <Link
-          to="/about"
-          className="py-1 px-3 text-lg font-light text-white
-           hover:text-sky-300 rounded-2xl hover:bg-slate-700
-            transition duration-300"
-        >
-          About
-        </Link>
-        <Link
-          to="/login"
-          className="py-1 px-3 text-lg font-light text-white
-           hover:text-sky-300 rounded-2xl hover:bg-slate-700
-            transition duration-300"
-        >
-          Login
-        </Link>
+
+      <div className="flex gap-4">
+        {navLinks.map(({ to, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              `px-3 py-1 text-lg text-white rounded-2xl transition duration-300 ${
+                isActive
+                  ? "bg-slate-700 text-sky-300"
+                  : "hover:bg-slate-700 hover:text-sky-300"
+              }`
+            }
+          >
+            {label}
+          </NavLink>
+        ))}
       </div>
     </nav>
   );
