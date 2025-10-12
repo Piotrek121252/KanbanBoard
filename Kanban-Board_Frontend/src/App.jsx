@@ -7,6 +7,7 @@ import Register from "./routes/Register";
 import Navbar from "./components/Navbar";
 import Kanban from "./routes/Kanban";
 import BoardsPage from "./routes/BoardsPage";
+import KanbanBoard from "./routes/KanbanBoard";
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/boards" element={<BoardsPage />} />
-          <Route path="/kanban" element={<Kanban />} />
+          <Route path="/kanban" element={<KanbanBoard />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
