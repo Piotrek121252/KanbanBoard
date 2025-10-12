@@ -5,7 +5,6 @@ import About from "./routes/About";
 import Login from "./routes/Login";
 import Register from "./routes/Register";
 import Navbar from "./components/Navbar";
-import Kanban from "./routes/Kanban";
 import BoardsPage from "./routes/BoardsPage";
 import KanbanBoard from "./routes/KanbanBoard";
 

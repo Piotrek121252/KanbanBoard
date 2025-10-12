@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Modal from "./Modal";
+import Modal from "../Modal";
 import { useCookies } from "react-cookie";
 import axios from "axios";
 
@@ -13,15 +13,15 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
   });
 
   useEffect(() => {
-    if (task) {
+    if (isOpen && task) {
       setFormData({
         name: task.name || "",
         description: task.description || "",
-        dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
+        dueDate: task.dueDate ? task.dueDate.slice(0, 16) : "",
         // isActive: task.isActive ?? true, // Jeśli jest nullem to ustawiamy na true
       });
     }
-  }, [task]);
+  }, [task, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,7 +56,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
         ...task,
         name: response.data.name,
         description: response.data.description,
-        due_date: response.data.dueDate,
+        dueDate: response.data.dueDate,
         // is_active: response.data.isActive,
       });
 
@@ -70,10 +70,8 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Edytuj zadanie`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-1">
-            Nazwa zadania
-          </label>
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Nazwa zadania
           <input
             id="name"
             type="text"
@@ -83,12 +81,10 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
             onChange={handleChange}
             className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
           />
-        </div>
+        </label>
 
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-1">
-            Opis zadania
-          </label>
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Opis zadania
           <textarea
             id="description"
             name="description"
@@ -98,12 +94,10 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
             rows={3}
             className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
           />
-        </div>
+        </label>
 
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-1">
-            Data zakończenia
-          </label>
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Data i czas zakończenia
           <input
             id="dueDate"
             type="datetime-local"
@@ -112,7 +106,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
             onChange={handleChange}
             className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
           />
-        </div>
+        </label>
 
         <div className="flex items-center gap-2">
           <input
@@ -124,7 +118,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
             className="h-4 w-4 accent-blue-600"
           />
           <label htmlFor="isActive" className="text-gray-300 text-sm">
-            Wykonane?
+            Ukończone?
           </label>
         </div>
 

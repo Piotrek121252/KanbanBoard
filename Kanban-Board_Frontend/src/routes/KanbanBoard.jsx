@@ -13,11 +13,13 @@ import {
 import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
 import Column from "../components/Kanban/Column";
 import TaskOverlay from "../components/Kanban/TaskOverlay";
-import TaskEditModal from "../components/TaskEditModal";
+import TaskEditModal from "../components/Kanban/TaskEditModal";
+import TaskAddModal from "../components/Kanban/TaskAddModal";
 import { useParams } from "react-router-dom";
 
 const KanbanBoard = () => {
   const { id: boardId } = useParams();
+  const [addModalColumnId, setAddModalColumnId] = useState(null);
   const [boardName, setBoardName] = useState("");
   const [cookie] = useCookies(["token"]);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -125,14 +127,14 @@ const KanbanBoard = () => {
     const { active, over } = event;
     if (!over) return setActiveId(null);
 
-    const col = findColumnId(active.id);
+    const activeCol = findColumnId(active.id);
     const overCol = findColumnId(over.id);
-    if (!col || !overCol) return;
+    if (!activeCol || !overCol) return;
 
-    if (col === overCol && active.id !== over.id) {
+    if (activeCol === overCol && active.id !== over.id) {
       setColumns((prev) =>
         prev.map((c) => {
-          if (c.id !== col) return c;
+          if (c.id !== activeCol) return c;
           const oldIndex = c.items.findIndex((i) => i.id === active.id);
           const newIndex = c.items.findIndex((i) => i.id === over.id);
           return { ...c, items: arrayMove(c.items, oldIndex, newIndex) };
@@ -148,9 +150,17 @@ const KanbanBoard = () => {
 
   return (
     <div className="p-6 pt-20 min-h-screen bg-gray-900 text-gray-100">
-      <h1 className="text-2xl font-semibold mb-4">
-        {boardName || "Ładowanie tablicy..."}
-      </h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold">
+          {boardName || "Ładowanie tablicy..."}
+        </h1>
+        <button
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-1 px-3"
+          onClick={() => setAddModalColumnId(columns[0]?.id)}
+        >
+          + Dodaj nowe zadanie
+        </button>
+      </div>
 
       <DndContext
         sensors={sensors}
@@ -187,12 +197,26 @@ const KanbanBoard = () => {
         onClose={() => setSelectedTask(null)}
         onSave={(updatedTask) => {
           setColumns((prev) =>
-            prev.map((container) => ({
-              ...container,
-              items: container.items.map((t) =>
+            prev.map((col) => ({
+              ...col,
+              items: col.items.map((t) =>
                 t.id === updatedTask.id ? updatedTask : t
               ),
             }))
+          );
+        }}
+      />
+      <TaskAddModal
+        columnId={addModalColumnId}
+        isOpen={!!addModalColumnId}
+        onClose={() => setAddModalColumnId(null)}
+        onSave={(newTask) => {
+          setColumns((prev) =>
+            prev.map((col) =>
+              col.id === newTask.columnId
+                ? { ...col, items: [...col.items, newTask] }
+                : col
+            )
           );
         }}
       />
