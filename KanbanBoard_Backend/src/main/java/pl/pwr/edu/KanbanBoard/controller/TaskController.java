@@ -35,8 +35,7 @@ public class TaskController {
 
     @PostMapping
     public TaskDto createTask(@PathVariable Integer columnId,
-                              @RequestBody CreateTaskDto dto,
-                              @AuthenticationPrincipal User user) {
+                              @RequestBody CreateTaskDto dto) {
         ColumnEntity column = columnRepository.findById(columnId)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono kolumny"));
         return taskService.createTask(column, dto);
@@ -45,15 +44,13 @@ public class TaskController {
     @PutMapping("/{taskId}")
     public TaskDto updateTask(@PathVariable Integer columnId,
                               @PathVariable Integer taskId,
-                              @RequestBody CreateTaskDto dto,
-                              @AuthenticationPrincipal User user) {
-        return taskService.updateTask(taskId, dto);
+                              @RequestBody CreateTaskDto dto) {
+        return taskService.updateTask(columnId, taskId, dto);
     }
 
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable Integer columnId,
-                                           @PathVariable Integer taskId,
-                                           @AuthenticationPrincipal User user) {
+                                           @PathVariable Integer taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
     }

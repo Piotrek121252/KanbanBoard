@@ -3,12 +3,13 @@ import Modal from "../Modal";
 import { useCookies } from "react-cookie";
 import axios from "axios";
 
-const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
+const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
   const [cookie] = useCookies("token");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     dueDate: "",
+    columnId: "",
     // isActive: true,
   });
 
@@ -18,6 +19,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
         name: task.name || "",
         description: task.description || "",
         dueDate: task.dueDate ? task.dueDate.slice(0, 16) : "",
+        columnId: task.columnId || "",
         // isActive: task.isActive ?? true, // Jeśli jest nullem to ustawiamy na true
       });
     }
@@ -39,7 +41,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
 
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/columns/${task.columnId}/tasks/${task.id}`,
+        `http://localhost:8080/api/columns/${formData.columnId}/tasks/${task.id}`,
         {
           name: formData.name,
           description: formData.description,
@@ -106,6 +108,22 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
             onChange={handleChange}
             className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
           />
+        </label>
+
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Kolumna
+          <select
+            name="columnId"
+            value={formData.columnId}
+            onChange={handleChange}
+            className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
+          >
+            {columns.map((col) => (
+              <option key={col.id} value={col.id}>
+                {col.title}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div className="flex items-center gap-2">

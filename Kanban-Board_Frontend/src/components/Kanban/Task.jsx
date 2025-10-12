@@ -1,7 +1,9 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { TbEdit } from "react-icons/tb";
+import { FaTrash } from "react-icons/fa";
 
-const Task = ({ task, onClick }) => {
+const Task = ({ task, onEdit, onDelete }) => {
   const { id, name, description, dueDate, isActive } = task;
   const {
     attributes,
@@ -26,7 +28,6 @@ const Task = ({ task, onClick }) => {
       className={`cursor-grab rounded-xl border border-gray-700 bg-gray-800 p-3 active:cursor-grabbing ${
         isDragging ? "opacity-50 shadow-lg" : ""
       }`}
-      onClick={() => onClick(task)}
     >
       <div className="flex flex-col gap-1">
         <h4 className="font-semibold text-gray-200">{name}</h4>
@@ -41,6 +42,30 @@ const Task = ({ task, onClick }) => {
               : "Brak deadline"}
           </span>
           <span>{isActive ? "Active" : "Inactive"}</span>
+        </div>
+
+        <div className="flex justify-end mt-2 gap-2">
+          <button
+            type="button"
+            className="text-red-500 hover:text-red-400"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task.id, task.columnId);
+            }}
+          >
+            <FaTrash size={16} />
+          </button>
+
+          <button
+            type="button"
+            className="mt-2 text-blue-500 hover:text-blue-400 text-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(task);
+            }}
+          >
+            <TbEdit size={20} />
+          </button>
         </div>
       </div>
     </li>

@@ -3,12 +3,13 @@ import Modal from "../Modal";
 import { useCookies } from "react-cookie";
 import axios from "axios";
 
-const TaskAddModal = ({ columnId, isOpen, onClose, onSave }) => {
+const TaskAddModal = ({ columns, isOpen, onClose, onSave }) => {
   const [cookie] = useCookies("token");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     dueDate: "",
+    columnId: "", // Domyślnie wybieramy pierwszą kolumnę
   });
 
   useEffect(() => {
@@ -17,9 +18,10 @@ const TaskAddModal = ({ columnId, isOpen, onClose, onSave }) => {
         name: "",
         description: "",
         dueDate: "",
+        columnId: columns.length > 0 ? columns[0].id : "",
       });
     }
-  }, [isOpen]);
+  }, [isOpen, columns]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,11 +30,11 @@ const TaskAddModal = ({ columnId, isOpen, onClose, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!columnId) return;
+    if (!formData.columnId) return;
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/columns/${columnId}/tasks`,
+        `http://localhost:8080/api/columns/${formData.columnId}/tasks`,
         {
           name: formData.name,
           description: formData.description,
@@ -45,7 +47,7 @@ const TaskAddModal = ({ columnId, isOpen, onClose, onSave }) => {
 
       onSave({
         ...response.data,
-        columnId,
+        columnId: formData.columnId,
       });
 
       onClose();
@@ -78,6 +80,23 @@ const TaskAddModal = ({ columnId, isOpen, onClose, onSave }) => {
             rows={3}
             className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
           />
+        </label>
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Kolumna
+          <select
+            name="columnId"
+            value={
+              formData.columnId || (columns.length > 0 ? columns[0].id : "")
+            }
+            onChange={handleChange}
+            className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
+          >
+            {columns.map((col) => (
+              <option key={col.id} value={col.id}>
+                {col.title}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="block text-gray-300 text-sm font-medium mb-1">

@@ -1,22 +1,27 @@
 package pl.pwr.edu.KanbanBoard.service;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.Task.CreateTaskDto;
 import pl.pwr.edu.KanbanBoard.dto.Task.TaskDto;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.model.Task;
+import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;
 import pl.pwr.edu.KanbanBoard.repository.TaskRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final ColumnRepository columnRepository;
+
+    public TaskService(TaskRepository taskRepository, ColumnRepository columnRepository) {
+        this.taskRepository = taskRepository;
+        this.columnRepository = columnRepository;
+    }
 
     public List<TaskDto> getTasksByColumn(ColumnEntity column) {
         return taskRepository.findByColumnIdOrderByCreatedDateAsc(column.getId())
@@ -38,13 +43,19 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDto updateTask(Integer taskId, CreateTaskDto dto) {
+    public TaskDto updateTask(Integer columnId, Integer taskId, CreateTaskDto dto) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono zadania"));
 
         if (dto.getName() != null) task.setName(dto.getName());
         if (dto.getDescription() != null) task.setDescription(dto.getDescription());
         if (dto.getDueDate() != null) task.setDueDate(dto.getDueDate());
+
+        if (!columnId.equals(task.getColumn().getId())) {
+            ColumnEntity newColumn = columnRepository.findById(columnId)
+                    .orElseThrow(() -> new RuntimeException("Nie znaleziono docelowej kolumny"));
+            task.setColumn(newColumn);
+        }
 
         return toDto(task);
     }

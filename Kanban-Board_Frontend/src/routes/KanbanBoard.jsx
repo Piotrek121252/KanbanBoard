@@ -97,6 +97,28 @@ const KanbanBoard = () => {
     return columns.find((c) => c.items.some((i) => i.id === id))?.id;
   };
 
+  const handleDeleteTask = async (taskId, columnId) => {
+    try {
+      await axios.delete(
+        `http://localhost:8080/api/columns/${columnId}/tasks/${taskId}`,
+        {
+          headers: { Authorization: `Bearer ${cookie.token}` },
+        }
+      );
+
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === columnId
+            ? { ...col, items: col.items.filter((t) => t.id !== taskId) }
+            : col
+        )
+      );
+    } catch (err) {
+      console.error("Nie udało się usunąć zadania:", err);
+      alert("Nie udało się usunąć zadania");
+    }
+  };
+
   const handleDragStart = (event) => setActiveId(event.active.id);
   const handleDragCancel = () => setActiveId(null);
 
@@ -178,6 +200,7 @@ const KanbanBoard = () => {
               title={col.title}
               items={col.items}
               onTaskClick={setSelectedTask}
+              onTaskDelete={handleDeleteTask}
             />
           ))}
         </div>
@@ -192,6 +215,7 @@ const KanbanBoard = () => {
         </DragOverlay>
       </DndContext>
       <TaskEditModal
+        columns={columns}
         task={selectedTask}
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
@@ -207,7 +231,7 @@ const KanbanBoard = () => {
         }}
       />
       <TaskAddModal
-        columnId={addModalColumnId}
+        columns={columns}
         isOpen={!!addModalColumnId}
         onClose={() => setAddModalColumnId(null)}
         onSave={(newTask) => {

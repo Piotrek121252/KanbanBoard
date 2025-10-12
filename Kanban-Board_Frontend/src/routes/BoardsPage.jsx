@@ -53,8 +53,8 @@ const BoardsPage = () => {
 
       setNewBoardName("");
       setIsPublic(true);
-      setIsModalOpen(false); // close modal
-      fetchBoards(); // refresh boards
+      setIsModalOpen(false);
+      fetchBoards();
     } catch (err) {
       console.error("Nie udało się utworzyć tablicy:", err);
       alert("Nie udało się utworzyć tablicy!");
