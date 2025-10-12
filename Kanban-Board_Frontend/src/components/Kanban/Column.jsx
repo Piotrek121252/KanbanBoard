@@ -5,7 +5,14 @@ import {
 } from "@dnd-kit/sortable";
 import Task from "./Task";
 
-const Column = ({ id, title, items, onTaskEdit, onTaskDelete }) => {
+const Column = ({
+  id,
+  title,
+  items,
+  onTaskEdit,
+  onTaskDelete,
+  onTaskPreview,
+}) => {
   const { setNodeRef } = useDroppable({ id });
 
   return (
@@ -25,6 +32,7 @@ const Column = ({ id, title, items, onTaskEdit, onTaskDelete }) => {
               task={task}
               onEdit={() => onTaskEdit(task)}
               onDelete={onTaskDelete}
+              onPreview={onTaskPreview}
             />
           ))}
         </ul>

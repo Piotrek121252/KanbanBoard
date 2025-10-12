@@ -15,11 +15,13 @@ import Column from "../components/Kanban/Column";
 import TaskOverlay from "../components/Kanban/TaskOverlay";
 import TaskEditModal from "../components/Kanban/TaskEditModal";
 import TaskAddModal from "../components/Kanban/TaskAddModal";
+import TaskPreviewModal from "../components/Kanban/TaskPreviewModal";
 import { useParams } from "react-router-dom";
 
 const KanbanBoard = () => {
   const { id: boardId } = useParams();
   const [addModalColumnId, setAddModalColumnId] = useState(null);
+  const [previewTask, setPreviewTask] = useState(null);
   const [boardName, setBoardName] = useState("");
   const [cookie] = useCookies(["token"]);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -96,6 +98,8 @@ const KanbanBoard = () => {
     if (columns.some((c) => c.id === id)) return id; // it's a column itself
     return columns.find((c) => c.items.some((i) => i.id === id))?.id;
   };
+
+  const handleTaskPreview = (task) => setPreviewTask(task);
 
   const handleDeleteTask = async (taskId, columnId) => {
     try {
@@ -201,6 +205,7 @@ const KanbanBoard = () => {
               items={col.items}
               onTaskClick={setSelectedTask}
               onTaskDelete={handleDeleteTask}
+              onTaskPreview={handleTaskPreview}
             />
           ))}
         </div>
@@ -243,6 +248,16 @@ const KanbanBoard = () => {
             )
           );
         }}
+      />
+      <TaskPreviewModal
+        task={previewTask}
+        isOpen={!!previewTask}
+        onClose={() => setPreviewTask(null)}
+      />
+      <TaskPreviewModal
+        task={previewTask}
+        isOpen={!!previewTask}
+        onClose={() => setPreviewTask(null)}
       />
     </div>
   );

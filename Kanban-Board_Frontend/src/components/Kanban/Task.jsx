@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { TbEdit } from "react-icons/tb";
 import { FaTrash } from "react-icons/fa";
 
-const Task = ({ task, onEdit, onDelete }) => {
+const Task = ({ task, onEdit, onDelete, onPreview }) => {
   const { id, name, description, dueDate, isActive } = task;
   const {
     attributes,
@@ -29,7 +29,7 @@ const Task = ({ task, onEdit, onDelete }) => {
         isDragging ? "opacity-50 shadow-lg" : ""
       }`}
     >
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1" onClick={() => onPreview?.(task)}>
         <h4 className="font-semibold text-gray-200">{name}</h4>
         <p className="text-gray-400 text-sm">{description}</p>
         <div className="flex justify-between text-xs text-gray-500 mt-1">
