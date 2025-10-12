@@ -5,7 +5,7 @@ import {
 } from "@dnd-kit/sortable";
 import Task from "./Task";
 
-const Column = ({ id, title, items }) => {
+const Column = ({ id, title, items, onTaskClick }) => {
   const { setNodeRef } = useDroppable({ id });
 
   return (
@@ -20,7 +20,7 @@ const Column = ({ id, title, items }) => {
       >
         <ul className="flex flex-col gap-2">
           {items.map((task) => (
-            <Task key={task.id} id={task.id} content={task.content} />
+            <Task key={task.id} task={task} onClick={() => onTaskClick(task)} />
           ))}
         </ul>
       </SortableContext>

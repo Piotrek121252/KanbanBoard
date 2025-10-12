@@ -28,7 +28,7 @@ const BoardsPage = () => {
 
       setBoards(response.data);
     } catch (err) {
-      console.error("Failed to fetch boards:", err);
+      console.error("Nie udało się pobrać tablic:", err);
       setBoards([]);
     } finally {
       setLoading(false);
@@ -56,8 +56,8 @@ const BoardsPage = () => {
       setIsModalOpen(false); // close modal
       fetchBoards(); // refresh boards
     } catch (err) {
-      console.error("Failed to create board:", err);
-      alert("Failed to create board. See console for details.");
+      console.error("Nie udało się utworzyć tablicy:", err);
+      alert("Nie udało się utworzyć tablicy!");
     } finally {
       setCreating(false);
     }
@@ -100,7 +100,7 @@ const BoardsPage = () => {
             <div
               key={board.id}
               className="relative p-4 border border-gray-700 rounded-xl shadow hover:shadow-lg cursor-pointer transition bg-gray-800 hover:bg-gray-700"
-              onClick={() => navigate(`/board/${board.id}`)}
+              onClick={() => navigate(`/boards/${board.id}/kanban`)}
             >
               <h2 className="text-lg font-medium text-gray-100">
                 {board.name}

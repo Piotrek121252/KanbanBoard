@@ -1,10 +1,19 @@
-const TaskOverlay = ({ children }) => (
-  <div className="cursor-grabbing rounded-xl border border-gray-700 bg-gray-800 p-3 shadow-lg">
-    <div className="flex items-center gap-3">
-      <span className="text-gray-500">⋮</span>
-      <span className="text-gray-200">{children}</span>
+const TaskOverlay = ({ task }) => {
+  const { name, description, dueDate, isActive } = task;
+  if (!task) return null;
+
+  return (
+    <div className="cursor-grabbing rounded-xl border bg-gray-800 p-3 shadow-lg border-gray-700 w-64">
+      <div className="flex flex-col gap-1">
+        <h4 className="font-semibold text-gray-200">{name}</h4>
+        <p className="text-gray-400 text-sm line-clamp-2">{description}</p>
+        <div className="flex justify-between text-xs text-gray-500 mt-1">
+          <span>{new Date(dueDate).toLocaleDateString()}</span>
+          <span>{isActive ? "Active" : "Inactive"}</span>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default TaskOverlay;

@@ -17,7 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/boards" element={<BoardsPage />} />
-          <Route path="/kanban" element={<KanbanBoard />} />
+          <Route path="/boards/:id/kanban" element={<KanbanBoard />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

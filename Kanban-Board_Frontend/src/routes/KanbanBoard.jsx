@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
+import axios from "axios";
 import {
   DndContext,
   useSensor,
@@ -11,30 +13,65 @@ import {
 import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
 import Column from "../components/Kanban/Column";
 import TaskOverlay from "../components/Kanban/TaskOverlay";
+import TaskEditModal from "../components/TaskEditModal";
+import { useParams } from "react-router-dom";
 
 const KanbanBoard = () => {
-  const [columns, setColumns] = useState([
-    {
-      id: "todo",
-      title: "To Do",
-      items: [
-        { id: "1", content: "Task1" },
-        { id: "2", content: "Task2" },
-      ],
-    },
-    {
-      id: "in-progress",
-      title: "In Progress",
-      items: [{ id: "3", content: "Task3" }],
-    },
-    {
-      id: "done",
-      title: "Done",
-      items: [{ id: "4", content: "Task4" }],
-    },
-  ]);
-
+  const { id: boardId } = useParams();
+  const [cookie] = useCookies(["token"]);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [columns, setColumns] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState(null);
+
+  useEffect(() => {
+    const fetchColumnsAndTasks = async () => {
+      try {
+        setLoading(true);
+
+        const columnsRes = await axios.get(
+          `http://localhost:8080/api/boards/${boardId}/columns`,
+          {
+            headers: {
+              Authorization: `Bearer ${cookie.token}`,
+            },
+          }
+        );
+        const columnsData = columnsRes.data;
+
+        const tasksRes = await Promise.all(
+          columnsData.map((col) =>
+            axios
+              .get(`http://localhost:8080/api/columns/${col.id}/tasks`, {
+                headers: {
+                  Authorization: `Bearer ${cookie.token}`,
+                },
+              })
+              .then((res) => ({
+                columnId: col.id,
+                tasks: res.data,
+              }))
+          )
+        );
+        const columnsWithTasks = columnsData.map((col) => {
+          const taskObj = tasksRes.find((t) => t.columnId === col.id);
+          return {
+            id: col.id.toString(),
+            title: col.name,
+            items: taskObj ? taskObj.tasks : [],
+          };
+        });
+
+        setColumns(columnsWithTasks);
+      } catch (err) {
+        console.error("Nie udało się pobrać danych z tablicy:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (cookie.token) fetchColumnsAndTasks();
+  }, [boardId, cookie.token]);
 
   // Sensory dla drag and drop
   const sensors = useSensors(
@@ -102,6 +139,9 @@ const KanbanBoard = () => {
   const getActiveTask = () =>
     columns.flatMap((c) => c.items).find((i) => i.id === activeId);
 
+  if (loading)
+    return <p className="p-6 pt-20 text-gray-300">Loading board...</p>;
+
   return (
     <div className="p-6 pt-20 min-h-screen bg-gray-900 text-gray-100">
       <h1 className="text-2xl font-semibold mb-4">Kanban Board</h1>
@@ -121,16 +161,35 @@ const KanbanBoard = () => {
               id={col.id}
               title={col.title}
               items={col.items}
+              onTaskClick={setSelectedTask}
             />
           ))}
         </div>
 
-        <DragOverlay>
-          {activeId ? (
-            <TaskOverlay>{getActiveTask()?.content}</TaskOverlay>
-          ) : null}
+        <DragOverlay
+          dropAnimation={{
+            duration: 150,
+            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+          }}
+        >
+          {activeId ? <TaskOverlay task={getActiveTask()} /> : null}
         </DragOverlay>
       </DndContext>
+      <TaskEditModal
+        task={selectedTask}
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onSave={(updatedTask) => {
+          setColumns((prev) =>
+            prev.map((container) => ({
+              ...container,
+              items: container.items.map((t) =>
+                t.id === updatedTask.id ? updatedTask : t
+              ),
+            }))
+          );
+        }}
+      />
     </div>
   );
 };
