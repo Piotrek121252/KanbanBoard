@@ -32,7 +32,14 @@ const Task = ({ task, onClick }) => {
         <h4 className="font-semibold text-gray-200">{name}</h4>
         <p className="text-gray-400 text-sm">{description}</p>
         <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>{new Date(dueDate).toDateString()}</span>
+          <span>
+            {dueDate
+              ? new Date(dueDate).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "Brak deadline"}
+          </span>
           <span>{isActive ? "Active" : "Inactive"}</span>
         </div>
       </div>

@@ -18,16 +18,25 @@ import { useParams } from "react-router-dom";
 
 const KanbanBoard = () => {
   const { id: boardId } = useParams();
+  const [boardName, setBoardName] = useState("");
   const [cookie] = useCookies(["token"]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [columns, setColumns] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState(null);
 
   useEffect(() => {
-    const fetchColumnsAndTasks = async () => {
+    const fetchBoardData = async () => {
       try {
-        setLoading(true);
+        const boardRes = await axios.get(
+          `http://localhost:8080/api/boards/${boardId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${cookie.token}`,
+            },
+          }
+        );
+
+        setBoardName(boardRes.data.name);
 
         const columnsRes = await axios.get(
           `http://localhost:8080/api/boards/${boardId}/columns`,
@@ -65,12 +74,10 @@ const KanbanBoard = () => {
         setColumns(columnsWithTasks);
       } catch (err) {
         console.error("Nie udało się pobrać danych z tablicy:", err);
-      } finally {
-        setLoading(false);
       }
     };
 
-    if (cookie.token) fetchColumnsAndTasks();
+    if (cookie.token) fetchBoardData();
   }, [boardId, cookie.token]);
 
   // Sensory dla drag and drop
@@ -139,12 +146,11 @@ const KanbanBoard = () => {
   const getActiveTask = () =>
     columns.flatMap((c) => c.items).find((i) => i.id === activeId);
 
-  if (loading)
-    return <p className="p-6 pt-20 text-gray-300">Loading board...</p>;
-
   return (
     <div className="p-6 pt-20 min-h-screen bg-gray-900 text-gray-100">
-      <h1 className="text-2xl font-semibold mb-4">Kanban Board</h1>
+      <h1 className="text-2xl font-semibold mb-4">
+        {boardName || "Ładowanie tablicy..."}
+      </h1>
 
       <DndContext
         sensors={sensors}

@@ -5,7 +5,6 @@ const Navbar = () => {
   const navLinks = [
     { to: "/", label: "Home" },
     { to: "/boards", label: "Boards" },
-    { to: "/kanban", label: "Kanban-Demo" },
     { to: "/about", label: "About" },
     { to: "/login", label: "Login" },
   ];

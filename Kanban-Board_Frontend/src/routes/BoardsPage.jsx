@@ -106,7 +106,7 @@ const BoardsPage = () => {
                 {board.name}
               </h2>
               <p className="text-gray-400 text-sm">
-                {board.isPublic ? "Public" : "Private"} • Created on{" "}
+                {board.isPublic ? "Publiczna" : "Prywatna"} • Stworzona:{" "}
                 {new Date(board.createdDate).toLocaleDateString()}
               </p>
               <button

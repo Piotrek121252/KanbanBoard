@@ -8,7 +8,14 @@ const TaskOverlay = ({ task }) => {
         <h4 className="font-semibold text-gray-200">{name}</h4>
         <p className="text-gray-400 text-sm line-clamp-2">{description}</p>
         <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>{new Date(dueDate).toLocaleDateString()}</span>
+          <span>
+            {dueDate
+              ? new Date(dueDate).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "Brak deadline"}
+          </span>
           <span>{isActive ? "Active" : "Inactive"}</span>
         </div>
       </div>
