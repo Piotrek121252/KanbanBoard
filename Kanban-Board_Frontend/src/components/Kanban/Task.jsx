@@ -52,6 +52,7 @@ const Task = ({ task, onEdit, onDelete, onPreview }) => {
               e.stopPropagation();
               onDelete(task.id, task.columnId);
             }}
+            title="Usuń zadanie"
           >
             <FaTrash size={16} />
           </button>
@@ -63,6 +64,7 @@ const Task = ({ task, onEdit, onDelete, onPreview }) => {
               e.stopPropagation();
               onEdit(task);
             }}
+            title="Edytuj zadanie"
           >
             <TbEdit size={20} />
           </button>
