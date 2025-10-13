@@ -16,6 +16,8 @@ import TaskOverlay from "../components/Kanban/TaskOverlay";
 import TaskEditModal from "../components/Kanban/TaskEditModal";
 import TaskAddModal from "../components/Kanban/TaskAddModal";
 import TaskPreviewModal from "../components/Kanban/TaskPreviewModal";
+import ColumnAddModal from "../components/Kanban/ColumnAddModal";
+import ColumnEditModal from "../components/Kanban/ColumnEditModal";
 import { useParams } from "react-router-dom";
 
 const KanbanBoard = () => {
@@ -27,6 +29,9 @@ const KanbanBoard = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [columns, setColumns] = useState([]);
   const [activeId, setActiveId] = useState(null);
+  const [isAddColumnOpen, setIsAddColumnOpen] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState(null);
+  const [isEditColumnOpen, setIsEditColumnOpen] = useState(false);
 
   useEffect(() => {
     const fetchBoardData = async () => {
@@ -180,12 +185,21 @@ const KanbanBoard = () => {
         <h1 className="text-2xl font-semibold">
           {boardName || "Ładowanie tablicy..."}
         </h1>
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-1 px-3"
-          onClick={() => setAddModalColumnId(columns[0]?.id)}
-        >
-          + Dodaj nowe zadanie
-        </button>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsAddColumnOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-4 font-medium transition"
+          >
+            + Dodaj kolumnę
+          </button>
+          <button
+            onClick={() => setAddModalColumnId(columns[0]?.id)}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-4 font-medium transition"
+          >
+            + Dodaj zadanie
+          </button>
+        </div>
       </div>
 
       <DndContext
@@ -206,6 +220,10 @@ const KanbanBoard = () => {
               onTaskClick={setSelectedTask}
               onTaskDelete={handleDeleteTask}
               onTaskPreview={handleTaskPreview}
+              onEdit={() => {
+                setSelectedColumn(col);
+                setIsEditColumnOpen(true);
+              }}
             />
           ))}
         </div>
@@ -254,10 +272,34 @@ const KanbanBoard = () => {
         isOpen={!!previewTask}
         onClose={() => setPreviewTask(null)}
       />
-      <TaskPreviewModal
-        task={previewTask}
-        isOpen={!!previewTask}
-        onClose={() => setPreviewTask(null)}
+      <ColumnAddModal
+        boardId={boardId}
+        columns={columns}
+        isOpen={isAddColumnOpen}
+        onClose={() => setIsAddColumnOpen(false)}
+        onSave={(newColumn) => {
+          setColumns((prev) => [
+            ...prev,
+            { id: newColumn.id.toString(), title: newColumn.name, items: [] },
+          ]);
+        }}
+      />
+      <ColumnEditModal
+        column={selectedColumn}
+        isOpen={isEditColumnOpen}
+        onClose={() => setIsEditColumnOpen(false)}
+        onSave={(updatedCol) => {
+          setColumns((prev) =>
+            prev.map((col) =>
+              col.id === updatedCol.id
+                ? { ...col, title: updatedCol.title }
+                : col
+            )
+          );
+        }}
+        onDelete={(id) => {
+          setColumns((prev) => prev.filter((col) => col.id !== id));
+        }}
       />
     </div>
   );
