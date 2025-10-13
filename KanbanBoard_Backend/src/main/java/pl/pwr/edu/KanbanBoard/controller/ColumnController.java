@@ -27,7 +27,7 @@ public class ColumnController {
     @GetMapping
     public List<ColumnDto> getColumns(@PathVariable Integer boardId) {
         Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new RuntimeException("Board not found"));
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono tablicy"));
         return columnService.getColumnsByBoard(board);
     }
 

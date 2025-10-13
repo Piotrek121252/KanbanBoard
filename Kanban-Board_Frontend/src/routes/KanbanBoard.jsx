@@ -76,6 +76,7 @@ const KanbanBoard = () => {
           return {
             id: col.id.toString(),
             title: col.name,
+            boardId: boardId,
             items: taskObj ? taskObj.tasks : [],
           };
         });
@@ -91,7 +92,7 @@ const KanbanBoard = () => {
 
   // Sensory dla drag and drop
   const sensors = useSensors(
-    // Obsługa myszki/dotyk
+    // Obsługa myszki/dotyku
     useSensor(PointerSensor, {
       activationConstraint: { delay: 100, tolerance: 5 },
     }),
@@ -201,7 +202,7 @@ const KanbanBoard = () => {
           </button>
         </div>
       </div>
-
+      {/* Modale jakie można wywołać */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -217,6 +218,7 @@ const KanbanBoard = () => {
               id={col.id}
               title={col.title}
               items={col.items}
+              boardId={col.boardId}
               onTaskClick={setSelectedTask}
               onTaskDelete={handleDeleteTask}
               onTaskPreview={handleTaskPreview}

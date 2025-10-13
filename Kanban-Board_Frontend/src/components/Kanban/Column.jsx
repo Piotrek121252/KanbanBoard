@@ -10,6 +10,7 @@ const Column = ({
   id,
   title,
   items,
+  boardId,
   onTaskEdit,
   onTaskDelete,
   onTaskPreview,
