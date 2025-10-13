@@ -181,8 +181,8 @@ const KanbanBoard = () => {
     columns.flatMap((c) => c.items).find((i) => i.id === activeId);
 
   return (
-    <div className="p-6 pt-20 min-h-screen bg-gray-900 text-gray-100">
-      <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-col h-screen bg-gray-900 text-gray-100 pt-20">
+      <div className="flex justify-between items-center mb-4 px-6">
         <h1 className="text-2xl font-semibold">
           {boardName || "Ładowanie tablicy..."}
         </h1>
@@ -202,7 +202,7 @@ const KanbanBoard = () => {
           </button>
         </div>
       </div>
-      {/* Modale jakie można wywołać */}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -211,23 +211,27 @@ const KanbanBoard = () => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {columns.map((col) => (
-            <Column
-              key={col.id}
-              id={col.id}
-              title={col.title}
-              items={col.items}
-              boardId={col.boardId}
-              onTaskClick={setSelectedTask}
-              onTaskDelete={handleDeleteTask}
-              onTaskPreview={handleTaskPreview}
-              onEdit={() => {
-                setSelectedColumn(col);
-                setIsEditColumnOpen(true);
-              }}
-            />
-          ))}
+        {/* Columns container */}
+        <div className="flex-1 overflow-x-auto overflow-y-auto">
+          <div className="flex gap-4 h-full">
+            {columns.map((col) => (
+              <div key={col.id} className="flex-shrink-0 w-80">
+                <Column
+                  id={col.id}
+                  title={col.title}
+                  items={col.items}
+                  boardId={col.boardId}
+                  onTaskClick={setSelectedTask}
+                  onTaskDelete={handleDeleteTask}
+                  onTaskPreview={handleTaskPreview}
+                  onEdit={() => {
+                    setSelectedColumn(col);
+                    setIsEditColumnOpen(true);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         <DragOverlay
@@ -239,6 +243,7 @@ const KanbanBoard = () => {
           {activeId ? <TaskOverlay task={getActiveTask()} /> : null}
         </DragOverlay>
       </DndContext>
+      {/* Modale jakie można wywołać */}
       <TaskEditModal
         columns={columns}
         task={selectedTask}
