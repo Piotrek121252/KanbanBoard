@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import Input from "../components/InputField.jsx";
 import axios from "axios";
 import FormWrapper from "../components/FormWrapper.jsx";
@@ -18,23 +17,22 @@ const Register = () => {
     e.preventDefault();
     setError(null);
 
-    if (password !== confirmPassword) {
-      setError("Hasła nie są zgodne.");
-      return;
-    }
-
     try {
       await axios.post("http://localhost:8080/api/auth/register", {
         username,
         email,
         password,
+        confirmPassword,
       });
 
       // Rejestracja przebiegła pomyślnie
       navigate("/login");
     } catch (err) {
-      // Błąd podczas rejestracji
-      setError(err.response.data.message || "Błąd podczas rejestracji");
+      if (err.response && err.response.data) {
+        setError(err.response.data);
+      } else {
+        setError("Błąd podczas rejestracji"); // fallback error
+      }
     }
   };
 
@@ -44,6 +42,8 @@ const Register = () => {
         <Input
           label="Nazwa użytkownika"
           required
+          minLength={3}
+          maxLength={20}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
@@ -51,6 +51,7 @@ const Register = () => {
           label="Adres email"
           type="email"
           required
+          maxLength={40}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -58,6 +59,8 @@ const Register = () => {
           label="Hasło"
           type="password"
           required
+          minLength={8}
+          maxLength={64}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -65,6 +68,8 @@ const Register = () => {
           label="Potwierdź hasło"
           type="password"
           required
+          minLength={8}
+          maxLength={64}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
@@ -75,6 +80,7 @@ const Register = () => {
           Zarejestruj się
         </button>
       </form>
+
       {error && <p className="text-red-500 mt-2">{error}</p>}
       <p className="mt-4 text-sm text-center">
         Posiadasz już konto?{" "}

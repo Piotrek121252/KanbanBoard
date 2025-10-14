@@ -20,13 +20,13 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true)
+    @Column(length = 20, nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @Column(length = 40,nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(length = 60, nullable = false)
     private String password;
 
     @Column(name = "signup_date",nullable = false)

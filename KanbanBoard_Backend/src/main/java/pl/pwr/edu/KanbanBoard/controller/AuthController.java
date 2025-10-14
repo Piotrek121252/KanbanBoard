@@ -43,32 +43,68 @@ public class AuthController {
 
     @PostMapping("login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getUsername(),
                 loginDto.getPassword()));
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token =jwtGenerator.generateToken(authentication);
-        return new ResponseEntity<>(new AuthResponseDto(token), HttpStatus.OK);
+        String token = jwtGenerator.generateToken(authentication);
+
+        return ResponseEntity.ok(new AuthResponseDto(token));
     }
 
     @PostMapping("register")
     public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
-        if (userRepository.existsByUsername(registerDto.getUsername())) {
-            return new ResponseEntity<>("Username is taken!", HttpStatus.BAD_REQUEST);
-        } else if (userRepository.existsByEmail(registerDto.getEmail())) {
-            return new ResponseEntity<>("Email is not unique!", HttpStatus.BAD_REQUEST);
+
+        // Walidacja username
+        String username = registerDto.getUsername();
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Username cannot be empty.");
+        } else if (username.length() < 3 || username.length() > 20) {
+            return ResponseEntity.badRequest().body("Username must be between 3 and 20 characters.");
+        }else if (userRepository.existsByUsername(username)) {
+            return ResponseEntity.badRequest().body("Username is already taken.");
         }
 
+        // Walidacja adresu e-mail
+        String email = registerDto.getEmail();
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email cannot be empty.");
+        }
+        if (email.length() > 40) {
+            return ResponseEntity.badRequest().body("Email must be less than 40 characters.");
+        }
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            return ResponseEntity.badRequest().body("Invalid email format.");
+        }
+        if (userRepository.existsByEmail(email)) {
+            return ResponseEntity.badRequest().body("Email is already registered.");
+        }
+
+        // Walidacja hasła
+        String password = registerDto.getPassword();
+        String confirmPassword = registerDto.getConfirmPassword();
+        if (password == null || password.isBlank()) {
+            return ResponseEntity.badRequest().body("Password cannot be empty.");
+        } else if (password.length() < 8 || password.length() > 64) {
+            return ResponseEntity.badRequest().body("Password must be between 8 and 64 characters.");
+        } else if (!password.equals(confirmPassword)) {
+            return ResponseEntity.badRequest().body("Passwords do not match.");
+        }
+
+        // Tworzenie i zapisanie użytkownika
         UserEntity user = new UserEntity();
         user.setUsername(registerDto.getUsername());
         user.setEmail(registerDto.getEmail());
-        user.setPassword(passwordEncoder.encode((registerDto.getPassword())));
+        user.setPassword(passwordEncoder.encode(password));
 
-        Role roles = roleRepository.findByName("USER").get();
-        user.setRoles(Collections.singletonList(roles));
+        Role role = roleRepository.findByName("USER")
+                .orElseThrow(() -> new RuntimeException("Default role USER not found"));
+        user.setRoles(Collections.singletonList(role));
 
         userRepository.save(user);
 
-        return new ResponseEntity<>("User registered success!", HttpStatus.OK);
+        return ResponseEntity.ok("User registered successfully.");
     }
 }
