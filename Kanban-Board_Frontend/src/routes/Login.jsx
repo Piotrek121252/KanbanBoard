@@ -26,19 +26,31 @@ const Login = () => {
         }
       );
 
-      const token = response.data.accessToken;
+      const { accessToken, tokenType, error } = response.data;
 
-      if (!token) throw new Error("Brak tokenu w odpowiedzi serwera");
+      if (error) {
+        setStatus(error);
+        return;
+      }
 
-      setCookie("token", token, { path: "/", maxAge: 15 * 60 }); // Token przestaje być ważny po 15 minutach
-      // TODO: zastanowić się czy korzystać z axios.defauls
-      axios.defaults.headers.common["Authorization"] =
-        `${response.data.tokenType}${token}`;
+      if (!accessToken) {
+        setStatus("Brak tokenu w odpowiedzi serwera.");
+        return;
+      }
 
-      navigate("/");
+      if (tokenType && tokenType.toLowerCase() === "bearer") {
+        setCookie("token", accessToken, { path: "/", maxAge: 30 * 60 });
+      } else {
+        console.warn("Token type is not 'Bearer', not storing the token.");
+      }
+
+      navigate("/boards");
     } catch (err) {
-      alert(err);
-      setStatus(err || "Błąd logowania");
+      const message =
+        err.response?.data?.error ||
+        err.response?.data ||
+        "Błąd logowania. Spróbuj ponownie.";
+      setStatus(message);
     }
   };
 
@@ -66,7 +78,9 @@ const Login = () => {
         </button>
       </form>
 
-      {status && <p className="text-red-500 mt-2 text-center">{status}</p>}
+      {status && (
+        <p className="text-red-500 mt-3 text-center font-medium">{status}</p>
+      )}
 
       <p className="mt-4 text-sm text-center">
         Nie posiadasz jeszcze konta?{" "}
