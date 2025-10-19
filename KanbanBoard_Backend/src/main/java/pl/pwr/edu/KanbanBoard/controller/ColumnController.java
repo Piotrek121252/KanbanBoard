@@ -56,7 +56,7 @@ public class ColumnController {
             @PathVariable Integer columnId,
             @RequestBody ChangeColumnPositionRequest dto) {
 
-        columnService.updateColumnPosition(columnId, dto.newPosition());
-        return ResponseEntity.ok(columnService.getColumnByIdAndBoard(columnId, boardId));
+        ColumnDto columnDto = columnService.updateColumnPosition(columnId, dto.newPosition());
+        return ResponseEntity.ok(columnDto);
     }
 }

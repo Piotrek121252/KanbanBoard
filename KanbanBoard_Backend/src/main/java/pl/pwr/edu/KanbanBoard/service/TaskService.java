@@ -4,11 +4,14 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
+import pl.pwr.edu.KanbanBoard.exceptions.TaskNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.model.Task;
 import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;
 import pl.pwr.edu.KanbanBoard.repository.TaskRepository;
+import pl.pwr.edu.KanbanBoard.service.mapper.TaskMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,65 +19,68 @@ import java.util.stream.Collectors;
 public class TaskService {
 
     private final TaskRepository taskRepository;
-    private final ColumnRepository columnRepository;
+    private final ColumnService columnService;
+    private final TaskMapper taskMapper;
 
-    public TaskService(TaskRepository taskRepository, ColumnRepository columnRepository) {
+    public TaskService(TaskRepository taskRepository, ColumnService columnService, TaskMapper taskMapper) {
         this.taskRepository = taskRepository;
-        this.columnRepository = columnRepository;
+        this.columnService = columnService;
+        this.taskMapper = taskMapper;
     }
 
-    public List<TaskDto> getTasksByColumn(ColumnEntity column) {
-        return taskRepository.findByColumnIdOrderByCreatedDateAsc(column.getId())
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public List<TaskDto> getTasksByColumnId(Integer columnId) {
+        ColumnEntity column = columnService.getColumnEntityById(columnId);
+        return taskMapper.toDtoList(taskRepository.findByColumnIdOrderByCreatedDateAsc(column.getId()));
     }
 
-    public TaskDto createTask(ColumnEntity column, CreateTaskRequest dto) {
+    public TaskDto createTask(Integer columnId, CreateTaskRequest createTaskDto) {
+        ColumnEntity column = columnService.getColumnEntityById(columnId);
+
         Task task = new Task();
         task.setColumn(column);
-        task.setName(dto.getName());
-        task.setDescription(dto.getDescription());
+        task.setName(createTaskDto.name());
+        task.setDescription(createTaskDto.description());
         task.setIsActive(true);
-        task.setDueDate(dto.getDueDate());
+        task.setCreatedDate(LocalDateTime.now());
+        task.setDueDate(createTaskDto.dueDate());
 
         Task saved = taskRepository.save(task);
-        return toDto(saved);
+        return taskMapper.apply(saved);
     }
 
-    @Transactional
-    public TaskDto updateTask(Integer columnId, Integer taskId, CreateTaskRequest dto) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono zadania"));
+    public TaskDto updateTask(Integer columnId, Integer taskId, CreateTaskRequest request) {
+        Task task = getTaskEntityById(taskId);
 
-        if (dto.getName() != null) task.setName(dto.getName());
-        if (dto.getDescription() != null) task.setDescription(dto.getDescription());
-        if (dto.getDueDate() != null) task.setDueDate(dto.getDueDate());
+        if (request.name() != null) task.setName(request.name());
+        if (request.description() != null) task.setDescription(request.description());
+        if (request.dueDate() != null) task.setDueDate(request.dueDate());
+        if (request.isActive() != null) task.setIsActive(request.isActive());
 
         if (!columnId.equals(task.getColumn().getId())) {
-            ColumnEntity newColumn = columnRepository.findById(columnId)
-                    .orElseThrow(() -> new RuntimeException("Nie znaleziono docelowej kolumny"));
+            ColumnEntity newColumn = columnService.getColumnEntityById(columnId);
             task.setColumn(newColumn);
         }
 
-        return toDto(task);
+        return taskMapper.apply(task);
     }
 
     public void deleteTask(Integer taskId) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono zadania"));
+        Task task = getTaskEntityById(taskId);
         taskRepository.delete(task);
     }
 
-    private TaskDto toDto(Task task) {
-        return new TaskDto(
-                task.getId(),
-                task.getColumn().getId(),
-                task.getName(),
-                task.getDescription(),
-                task.getIsActive(),
-                task.getCreatedDate(),
-                task.getDueDate()
-        );
+    public TaskDto updateTaskActive(Integer taskId, Boolean isActive) {
+        Task task = getTaskEntityById(taskId);
+        task.setIsActive(isActive);
+        return taskMapper.apply(task);
+    }
+
+    Task getTaskEntityById(Integer taskId) {
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
+    }
+
+    public TaskDto getTaskById(Integer taskId) {
+        return taskMapper.apply(getTaskEntityById(taskId));
     }
 }

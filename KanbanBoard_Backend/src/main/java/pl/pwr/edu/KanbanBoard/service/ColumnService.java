@@ -75,8 +75,7 @@ public class ColumnService {
         columnRepository.delete(column);
     }
 
-    @Transactional
-    public ColumnEntity updateColumnPosition(Integer columnId, Integer newPosition) {
+    public ColumnDto updateColumnPosition(Integer columnId, Integer newPosition) {
         ColumnEntity column = columnRepository.findById(columnId)
                 .orElseThrow(() -> new ColumnNotFoundException(columnId));
 
@@ -98,15 +97,15 @@ public class ColumnService {
             columnRepository.save(column);
         }
 
-        return column;
+        return columnMapper.apply(column);
     }
-    // TODO zastanowić się czy metody zwracające Entity nie powinny mieć widoczności package private
-    public ColumnEntity getColumnEntityByIdAndBoard(Integer columnId, Integer boardId) {
+
+    ColumnEntity getColumnEntityByIdAndBoard(Integer columnId, Integer boardId) {
         ColumnEntity column = columnRepository.findById(columnId)
                 .orElseThrow(() -> new ColumnNotFoundException(columnId));
 
         if (!column.getBoard().getId().equals(boardId)) {
-            throw new IllegalArgumentException("Column does not belong to this board");
+            throw new IllegalArgumentException("Kolumna nie należy do tej tablicy");
         }
         return column;
     }
@@ -116,7 +115,11 @@ public class ColumnService {
         return columnMapper.apply(column);
     }
 
-    @Transactional
+    ColumnEntity getColumnEntityById(Integer columnId) {
+        return columnRepository.findById(columnId)
+                .orElseThrow(() -> new ColumnNotFoundException(columnId));
+    }
+
     public void createDefaultColumns(Board board) {
         createColumn(board.getId(), "TO-DO", 1);
         createColumn(board.getId(), "In-Progress", 2);

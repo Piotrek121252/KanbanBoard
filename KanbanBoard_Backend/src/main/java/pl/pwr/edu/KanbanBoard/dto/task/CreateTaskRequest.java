@@ -5,5 +5,6 @@ import java.time.LocalDateTime;
 public record CreateTaskRequest(
         String name,
         String description,
+        Boolean isActive,
         LocalDateTime dueDate
 ) {}
