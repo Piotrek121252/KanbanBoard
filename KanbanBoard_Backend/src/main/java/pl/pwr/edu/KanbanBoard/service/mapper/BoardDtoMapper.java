@@ -20,5 +20,4 @@ public class BoardDtoMapper implements Function<Board, BoardDto> {
                 board.getMembers().stream().map(UserEntity::getId).collect(Collectors.toList())
         );
     }
-
 }
