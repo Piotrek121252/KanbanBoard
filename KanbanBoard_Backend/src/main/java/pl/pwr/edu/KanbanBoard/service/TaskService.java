@@ -2,7 +2,7 @@ package pl.pwr.edu.KanbanBoard.service;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskDto;
+import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.model.Task;
@@ -30,7 +30,7 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public TaskDto createTask(ColumnEntity column, CreateTaskDto dto) {
+    public TaskDto createTask(ColumnEntity column, CreateTaskRequest dto) {
         Task task = new Task();
         task.setColumn(column);
         task.setName(dto.getName());
@@ -43,7 +43,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDto updateTask(Integer columnId, Integer taskId, CreateTaskDto dto) {
+    public TaskDto updateTask(Integer columnId, Integer taskId, CreateTaskRequest dto) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono zadania"));
 

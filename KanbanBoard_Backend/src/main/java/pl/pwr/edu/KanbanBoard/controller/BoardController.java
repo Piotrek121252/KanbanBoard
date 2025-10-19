@@ -6,7 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
-import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardDto;
+import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
 import pl.pwr.edu.KanbanBoard.service.BoardService;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class BoardController {
     }
 
     @PostMapping
-    public ResponseEntity<BoardDto> createBoard(@RequestBody CreateBoardDto createBoardDto, @AuthenticationPrincipal User user) {
+    public ResponseEntity<BoardDto> createBoard(@RequestBody CreateBoardRequest createBoardDto, @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(boardService.createBoard(createBoardDto, user.getUsername()));
     }
 

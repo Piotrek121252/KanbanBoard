@@ -1,6 +1,6 @@
 package pl.pwr.edu.KanbanBoard.dto.comment;
 
 
-public record CreateCommentDto(
+public record CreateCommentRequest(
         String comment
 ) {}

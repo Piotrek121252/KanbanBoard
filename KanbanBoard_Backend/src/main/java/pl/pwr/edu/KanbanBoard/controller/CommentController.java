@@ -6,7 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import pl.pwr.edu.KanbanBoard.dto.comment.CommentDto;
-import pl.pwr.edu.KanbanBoard.dto.comment.CreateCommentDto;
+import pl.pwr.edu.KanbanBoard.dto.comment.CreateCommentRequest;
 import pl.pwr.edu.KanbanBoard.service.CommentService;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public class CommentController {
 
     @PostMapping
     public CommentDto addComment(@PathVariable Integer taskId,
-                                 @RequestBody CreateCommentDto dto,
+                                 @RequestBody CreateCommentRequest dto,
                                  @AuthenticationPrincipal User user) {
         return commentService.addComment(taskId, user.getUsername(), dto.getComment());
     }

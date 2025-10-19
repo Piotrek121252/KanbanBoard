@@ -1,7 +1,7 @@
 package pl.pwr.edu.KanbanBoard.dto.board;
 
 
-public record CreateBoardDto(
+public record CreateBoardRequest(
         String name,
         Boolean isPublic
 ) {}

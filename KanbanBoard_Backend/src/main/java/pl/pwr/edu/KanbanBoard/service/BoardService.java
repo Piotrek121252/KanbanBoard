@@ -2,13 +2,12 @@ package pl.pwr.edu.KanbanBoard.service;
 
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
-import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardDto;
+import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
 import pl.pwr.edu.KanbanBoard.exceptions.BoardNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
-import pl.pwr.edu.KanbanBoard.repository.UserRepository;
-import pl.pwr.edu.KanbanBoard.service.mapper.BoardDtoMapper;
+import pl.pwr.edu.KanbanBoard.service.mapper.BoardMapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,29 +18,34 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final UserService userService;
     private final ColumnService columnService;
-    private final BoardDtoMapper boardDtoMapper;
+    private final BoardMapper boardMapper;
 
 
-    public BoardService(BoardRepository boardRepository, UserService userService, ColumnService columnService, BoardDtoMapper boardDtoMapper) {
+    public BoardService(BoardRepository boardRepository, UserService userService, ColumnService columnService, BoardMapper boardMapper) {
         this.boardRepository = boardRepository;
         this.userService = userService;
         this.columnService = columnService;
-        this.boardDtoMapper = boardDtoMapper;
+        this.boardMapper = boardMapper;
     }
 
     public List<BoardDto> getAllBoards() {
         return boardRepository.findAll().stream()
-                .map(boardDtoMapper)
+                .map(boardMapper)
                 .collect(Collectors.toList());
     }
 
     public BoardDto getBoardById(Integer id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new BoardNotFoundException("Board not found with id: " + id));
-        return boardDtoMapper.apply(board);
+        return boardMapper.apply(board);
     }
 
-    public BoardDto createBoard(CreateBoardDto createBoardDto, String username) {
+    public Board getBoardEntityById(Integer id) {
+        return boardRepository.findById(id)
+                .orElseThrow(() -> new BoardNotFoundException("Board not found with id: " + id));
+    }
+
+    public BoardDto createBoard(CreateBoardRequest createBoardDto, String username) {
         Board board = new Board();
         board.setName(createBoardDto.name());
         board.setIsPublic(createBoardDto.isPublic());
@@ -53,7 +57,7 @@ public class BoardService {
 
         columnService.createDefaultColumns(saved);
 
-        return boardDtoMapper.apply(saved);
+        return boardMapper.apply(saved);
     }
 
     public void deleteBoard(Integer id) {

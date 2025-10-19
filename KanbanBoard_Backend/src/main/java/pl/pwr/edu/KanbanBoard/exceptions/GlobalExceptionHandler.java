@@ -14,11 +14,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BoardNotFoundException.class)
     public ResponseEntity<ErrorObject> handleBoardNotFoundException(BoardNotFoundException ex, WebRequest request) {
         ErrorObject errorObject = new ErrorObject();
-
         errorObject.setStatusCode(HttpStatus.NOT_FOUND.value());
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorObject);
     }
+
+    @ExceptionHandler(ColumnNotFoundException.class)
+    public ResponseEntity<ErrorObject> handleColumnNotFound(ColumnNotFoundException ex, WebRequest request) {
+        // Można użyć WebRequest do pobrania dodatkowych informacji o request
+        ErrorObject errorObject = new ErrorObject();
+        errorObject.setStatusCode(HttpStatus.NOT_FOUND.value());
+        errorObject.setMessage(ex.getMessage());
+        errorObject.setTimestamp(new Date());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorObject);
+    }
+
 }

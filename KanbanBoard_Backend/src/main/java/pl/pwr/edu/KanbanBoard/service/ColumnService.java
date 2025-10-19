@@ -1,32 +1,39 @@
 package pl.pwr.edu.KanbanBoard.service;
 
-import jakarta.persistence.Column;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.column.ColumnDto;
+import pl.pwr.edu.KanbanBoard.exceptions.ColumnNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
-import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
 import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;
+import pl.pwr.edu.KanbanBoard.service.mapper.ColumnMapper;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ColumnService {
 
     private final ColumnRepository columnRepository;
-    private final BoardRepository boardRepository;
+    private final BoardService boardService;
+    private final ColumnMapper columnMapper;
 
-    public ColumnService(ColumnRepository columnRepository, BoardRepository boardRepository) {
+    public ColumnService(ColumnRepository columnRepository, BoardService boardService, ColumnMapper columnMapper) {
         this.columnRepository = columnRepository;
-        this.boardRepository = boardRepository;
+        this.boardService = boardService;
+        this.columnMapper = columnMapper;
     }
 
-    public ColumnDto createColumn(Board board, String name, Integer requestedPosition) {
+    public List<ColumnDto> getColumnsByBoardId(Integer boardId) {
+        Board board = boardService.getBoardEntityById(boardId);
+        return columnMapper.toDtoList(board.getColumns());
+    }
+
+    public ColumnDto createColumn(Integer boardId, String name, Integer requestedPosition) {
+        Board board = boardService.getBoardEntityById(boardId);
+
         List<ColumnEntity> columns = columnRepository.findByBoardOrderByPosition(board);
         int maxPosition = columns.size() + 1;
-
         int newPosition = Math.max(1, Math.min(requestedPosition != null ? requestedPosition : maxPosition, maxPosition));
 
         for (ColumnEntity col : columns) {
@@ -42,100 +49,78 @@ public class ColumnService {
         column.setPosition(newPosition);
 
         ColumnEntity saved = columnRepository.save(column);
-        return toDto(saved);
+        return columnMapper.apply(saved);
     }
 
-    @Transactional
-    public ColumnDto updateColumn(Integer columnId, String name, Integer requestedPosition) {
-        ColumnEntity column = columnRepository.findById(columnId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono kolumny"));
+    public ColumnDto updateColumn(Integer boardId, Integer columnId, String name, Integer requestedPosition) {
+        ColumnEntity column = getColumnEntityByIdAndBoard(columnId, boardId);
 
-        if (name != null) {
+        if (name != null)
             column.setName(name);
-        }
-
         if (requestedPosition != null) {
             updateColumnPosition(columnId, requestedPosition);
-            column = columnRepository.findById(columnId).orElseThrow();
         }
 
-        return toDto(column);
+        return columnMapper.apply(columnRepository.findById(columnId)
+                .orElseThrow(() -> new ColumnNotFoundException(columnId)));
     }
 
-    public void deleteColumn(Integer columnId) {
-        ColumnEntity column = columnRepository.findById(columnId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono kolumny"));
+    public void deleteColumn(Integer boardId, Integer columnId) {
+        ColumnEntity column = getColumnEntityByIdAndBoard(columnId, boardId);
 
         if (!column.getTasks().isEmpty()) {
-            throw new RuntimeException("Nie mozna usunać kolumny, ktora ma przypisane zadania");
+            throw new IllegalStateException("Nie można usunąć kolumny, która ma przypisane zadania");
         }
 
         columnRepository.delete(column);
     }
 
     @Transactional
-    public ColumnEntity updateColumnPosition(Integer columnId, int newPosition) {
+    public ColumnEntity updateColumnPosition(Integer columnId, Integer newPosition) {
         ColumnEntity column = columnRepository.findById(columnId)
-                .orElseThrow(() -> new IllegalArgumentException("Column not found"));
+                .orElseThrow(() -> new ColumnNotFoundException(columnId));
 
         List<ColumnEntity> columns = columnRepository.findByBoardOrderByPosition(column.getBoard());
         int maxPosition = columns.size();
         newPosition = Math.max(1, Math.min(newPosition, maxPosition));
-
         int oldPosition = column.getPosition();
 
-        if (newPosition == oldPosition) {
-            return column;
-        }
-
-        // Zmieniamy kolejność innych kolumn, żeby zachować porządek
-        for (ColumnEntity col : columns) {
-            if (oldPosition < newPosition) {
-                if (col.getPosition() > oldPosition && col.getPosition() <= newPosition) {
+        if (newPosition != oldPosition) {
+            for (ColumnEntity col : columns) {
+                if (oldPosition < newPosition && col.getPosition() > oldPosition && col.getPosition() <= newPosition) {
                     col.setPosition(col.getPosition() - 1);
-                }
-            } else {
-                if (col.getPosition() < oldPosition && col.getPosition() >= newPosition) {
+                } else if (oldPosition > newPosition && col.getPosition() < oldPosition && col.getPosition() >= newPosition) {
                     col.setPosition(col.getPosition() + 1);
                 }
             }
-        }
-
-        column.setPosition(newPosition);
-        columnRepository.saveAll(columns);
-        return columnRepository.save(column);
-    }
-
-    public ColumnDto toDto(ColumnEntity column) {
-        return new ColumnDto(
-                column.getId(),
-                column.getBoard().getId(),
-                column.getName(),
-                column.getPosition()
-        );
-    }
-
-    public void createDefaultColumns(Board board) {
-        createColumn(board, "TO-DO", 1);
-        createColumn(board, "In-Progress", 2);
-        createColumn(board, "Done", 3);
-    }
-
-    public List<ColumnDto> getColumnsByBoard(Board board) {
-        return board.getColumns().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public ColumnEntity getColumnByIdAndBoard(Integer columnId, Integer boardId) {
-        ColumnEntity column = columnRepository.findById(columnId)
-                .orElseThrow(() -> new RuntimeException("Column not found"));
-
-        if (!column.getBoard().getId().equals(boardId)) {
-            throw new RuntimeException("Column does not belong to this board");
+            column.setPosition(newPosition);
+            columnRepository.saveAll(columns);
+            columnRepository.save(column);
         }
 
         return column;
     }
+    // TODO zastanowić się czy metody zwracające Entity nie powinny mieć widoczności package private
+    public ColumnEntity getColumnEntityByIdAndBoard(Integer columnId, Integer boardId) {
+        ColumnEntity column = columnRepository.findById(columnId)
+                .orElseThrow(() -> new ColumnNotFoundException(columnId));
+
+        if (!column.getBoard().getId().equals(boardId)) {
+            throw new IllegalArgumentException("Column does not belong to this board");
+        }
+        return column;
+    }
+
+    public ColumnDto getColumnByIdAndBoard(Integer columnId, Integer boardId) {
+        ColumnEntity column = getColumnEntityByIdAndBoard(columnId, boardId);
+        return columnMapper.apply(column);
+    }
+
+    @Transactional
+    public void createDefaultColumns(Board board) {
+        createColumn(board.getId(), "TO-DO", 1);
+        createColumn(board.getId(), "In-Progress", 2);
+        createColumn(board.getId(), "Done", 3);
+    }
+
 }

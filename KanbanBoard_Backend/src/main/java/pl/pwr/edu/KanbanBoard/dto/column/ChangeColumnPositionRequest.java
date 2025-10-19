@@ -1,6 +1,6 @@
 package pl.pwr.edu.KanbanBoard.dto.column;
 
 
-public record ColumnPositionDto(
+public record ChangeColumnPositionRequest(
         Integer newPosition
 ) {}

@@ -1,7 +1,7 @@
 package pl.pwr.edu.KanbanBoard.dto.column;
 
 
-public record CreateColumnDto(
+public record CreateColumnRequest(
         String name,
         Integer position
 ) {}

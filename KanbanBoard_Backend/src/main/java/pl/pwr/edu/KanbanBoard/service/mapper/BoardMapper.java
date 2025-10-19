@@ -9,7 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class BoardDtoMapper implements Function<Board, BoardDto> {
+public class BoardMapper implements Function<Board, BoardDto> {
     @Override
     public BoardDto apply(Board board) {
         return new BoardDto(
