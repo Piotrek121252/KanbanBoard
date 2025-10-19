@@ -37,8 +37,8 @@ public class ColumnController {
     @PutMapping("/{columnId}")
     public ResponseEntity<ColumnDto> updateColumn(@PathVariable Integer boardId,
                                                   @PathVariable Integer columnId,
-                                                  @RequestBody CreateColumnRequest dto) {
-        ColumnDto updated = columnService.updateColumn(boardId, columnId, dto.name(), dto.position());
+                                                  @RequestBody CreateColumnRequest request) {
+        ColumnDto updated = columnService.updateColumn(boardId, columnId, request.name(), request.position());
         return ResponseEntity.ok(updated);
     }
 

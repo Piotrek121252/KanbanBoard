@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import axios from "axios";
 import {
@@ -11,6 +11,7 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
+
 import Column from "../components/Kanban/Column";
 import TaskOverlay from "../components/Kanban/TaskOverlay";
 import TaskEditModal from "../components/Kanban/TaskEditModal";
@@ -33,78 +34,62 @@ const KanbanBoard = () => {
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [isEditColumnOpen, setIsEditColumnOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchBoardData = async () => {
-      try {
-        const boardRes = await axios.get(
-          `http://localhost:8080/api/boards/${boardId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${cookie.token}`,
-            },
-          }
-        );
+  const fetchBoardData = useCallback(async () => {
+    try {
+      const boardRes = await axios.get(
+        `http://localhost:8080/api/boards/${boardId}`,
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      setBoardName(boardRes.data.name);
 
-        setBoardName(boardRes.data.name);
+      const columnsRes = await axios.get(
+        `http://localhost:8080/api/boards/${boardId}/columns`,
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      const columnsData = columnsRes.data;
 
-        const columnsRes = await axios.get(
-          `http://localhost:8080/api/boards/${boardId}/columns`,
-          {
-            headers: {
-              Authorization: `Bearer ${cookie.token}`,
-            },
-          }
-        );
-        const columnsData = columnsRes.data;
+      const tasksRes = await Promise.all(
+        columnsData.map((col) =>
+          axios
+            .get(`http://localhost:8080/api/columns/${col.id}/tasks`, {
+              headers: { Authorization: `Bearer ${cookie.token}` },
+            })
+            .then((res) => ({ columnId: col.id, tasks: res.data }))
+        )
+      );
 
-        const tasksRes = await Promise.all(
-          columnsData.map((col) =>
-            axios
-              .get(`http://localhost:8080/api/columns/${col.id}/tasks`, {
-                headers: {
-                  Authorization: `Bearer ${cookie.token}`,
-                },
-              })
-              .then((res) => ({
-                columnId: col.id,
-                tasks: res.data,
-              }))
-          )
-        );
-        const columnsWithTasks = columnsData
-          .map((col) => {
-            const taskObj = tasksRes.find((t) => t.columnId === col.id);
-            return {
-              id: col.id.toString(),
-              title: col.name,
-              boardId: boardId,
-              position: col.position,
-              items: taskObj ? taskObj.tasks : [],
-            };
-          })
-          .sort((a, b) => a.position - b.position);
+      const columnsWithTasks = columnsData
+        .map((col) => {
+          const taskObj = tasksRes.find((t) => t.columnId === col.id);
+          return {
+            id: col.id.toString(),
+            title: col.name,
+            boardId,
+            position: col.position,
+            items: taskObj ? taskObj.tasks : [],
+          };
+        })
+        .sort((a, b) => a.position - b.position);
 
-        setColumns(columnsWithTasks);
-      } catch (err) {
-        console.error("Nie udało się pobrać danych z tablicy:", err);
-      }
-    };
-
-    if (cookie.token) fetchBoardData();
+      setColumns(columnsWithTasks);
+    } catch (err) {
+      console.error("Nie udało się pobrać danych z tablicy:", err);
+    }
   }, [boardId, cookie.token]);
 
-  // Sensory dla drag and drop
+  useEffect(() => {
+    if (cookie.token) fetchBoardData();
+  }, [boardId, cookie.token, fetchBoardData]);
+
   const sensors = useSensors(
-    // Obsługa myszki/dotyku
     useSensor(PointerSensor, {
       activationConstraint: { delay: 100, tolerance: 5 },
     }),
-    // Obsługa klawiatury
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const findColumnId = (id) => {
-    if (columns.some((c) => c.id === id)) return id; // it's a column itself
+    if (columns.some((c) => c.id === id)) return id;
     return columns.find((c) => c.items.some((i) => i.id === id))?.id;
   };
 
@@ -114,18 +99,9 @@ const KanbanBoard = () => {
     try {
       await axios.delete(
         `http://localhost:8080/api/columns/${columnId}/tasks/${taskId}`,
-        {
-          headers: { Authorization: `Bearer ${cookie.token}` },
-        }
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
-
-      setColumns((prev) =>
-        prev.map((col) =>
-          col.id === columnId
-            ? { ...col, items: col.items.filter((t) => t.id !== taskId) }
-            : col
-        )
-      );
+      await fetchBoardData();
     } catch (err) {
       console.error("Nie udało się usunąć zadania:", err);
       alert("Nie udało się usunąć zadania");
@@ -138,20 +114,16 @@ const KanbanBoard = () => {
   const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-    const activeCol = findColumnId(activeId);
-    const overCol = findColumnId(overId);
+    const activeCol = findColumnId(active.id);
+    const overCol = findColumnId(over.id);
     if (!activeCol || !overCol || activeCol === overCol) return;
 
     setColumns((prev) => {
       const fromCol = prev.find((c) => c.id === activeCol);
-      const task = fromCol.items.find((i) => i.id === activeId);
-
+      const task = fromCol.items.find((i) => i.id === active.id);
       return prev.map((col) => {
         if (col.id === activeCol)
-          return { ...col, items: col.items.filter((i) => i.id !== activeId) };
+          return { ...col, items: col.items.filter((i) => i.id !== active.id) };
         if (col.id === overCol) return { ...col, items: [...col.items, task] };
         return col;
       });
@@ -214,7 +186,6 @@ const KanbanBoard = () => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* Div na kolumny */}
         <div className="flex-1 overflow-x-auto overflow-y-auto">
           <div className="flex gap-4 h-full">
             {columns.map((col) => (
@@ -246,36 +217,20 @@ const KanbanBoard = () => {
           {activeId ? <TaskOverlay task={getActiveTask()} /> : null}
         </DragOverlay>
       </DndContext>
-      {/* Modale jakie można wywołać */}
+
+      {/* Miejsce na modale*/}
       <TaskEditModal
         columns={columns}
         task={selectedTask}
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
-        onSave={(updatedTask) => {
-          setColumns((prev) =>
-            prev.map((col) => ({
-              ...col,
-              items: col.items.map((t) =>
-                t.id === updatedTask.id ? updatedTask : t
-              ),
-            }))
-          );
-        }}
+        onSave={fetchBoardData}
       />
       <TaskAddModal
         columns={columns}
         isOpen={!!addModalColumnId}
         onClose={() => setAddModalColumnId(null)}
-        onSave={(newTask) => {
-          setColumns((prev) =>
-            prev.map((col) =>
-              col.id === newTask.columnId
-                ? { ...col, items: [...col.items, newTask] }
-                : col
-            )
-          );
-        }}
+        onSave={fetchBoardData}
       />
       <TaskPreviewModal
         task={previewTask}
@@ -287,30 +242,14 @@ const KanbanBoard = () => {
         columns={columns}
         isOpen={isAddColumnOpen}
         onClose={() => setIsAddColumnOpen(false)}
-        onSave={(newColumn) => {
-          setColumns((prev) => [
-            ...prev,
-            { id: newColumn.id.toString(), title: newColumn.name, items: [] },
-          ]);
-        }}
+        onRefresh={fetchBoardData}
       />
       <ColumnEditModal
         column={selectedColumn}
         columns={columns}
         isOpen={isEditColumnOpen}
         onClose={() => setIsEditColumnOpen(false)}
-        onSave={(updatedCol) => {
-          setColumns((prev) =>
-            prev.map((col) =>
-              col.id === updatedCol.id
-                ? { ...col, title: updatedCol.title }
-                : col
-            )
-          );
-        }}
-        onDelete={(id) => {
-          setColumns((prev) => prev.filter((col) => col.id !== id));
-        }}
+        onRefresh={fetchBoardData}
       />
     </div>
   );

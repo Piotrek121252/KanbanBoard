@@ -3,19 +3,13 @@ import Modal from "../Modal";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 
-const AddColumnModal = ({ boardId, columns, isOpen, onClose, onSave }) => {
+const AddColumnModal = ({ boardId, columns, isOpen, onClose, onRefresh }) => {
   const [cookie] = useCookies(["token"]);
-  const [formData, setFormData] = useState({
-    name: "",
-    position: 1,
-  });
+  const [formData, setFormData] = useState({ name: "", position: 1 });
 
   useEffect(() => {
     if (isOpen) {
-      setFormData({
-        name: "",
-        position: columns.length + 1,
-      });
+      setFormData({ name: "", position: columns.length + 1 });
     }
   }, [isOpen, columns]);
 
@@ -28,19 +22,16 @@ const AddColumnModal = ({ boardId, columns, isOpen, onClose, onSave }) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:8080/api/boards/${boardId}/columns`,
         {
           name: formData.name,
           position: parseInt(formData.position, 10),
         },
-        {
-          headers: { Authorization: `Bearer ${cookie.token}` },
-        }
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
-
-      onSave(response.data);
       onClose();
+      onRefresh();
     } catch (error) {
       console.error("Nie udało się dodać kolumny:", error);
       alert("Wystąpił problem podczas dodawania kolumny.");

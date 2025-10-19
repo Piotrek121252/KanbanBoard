@@ -3,14 +3,7 @@ import Modal from "../Modal";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 
-const ColumnEditModal = ({
-  column,
-  columns,
-  isOpen,
-  onClose,
-  onSave,
-  onDelete,
-}) => {
+const ColumnEditModal = ({ column, columns, isOpen, onClose, onRefresh }) => {
   const [cookie] = useCookies(["token"]);
   const [formData, setFormData] = useState({ name: "", position: 1 });
 
@@ -36,7 +29,7 @@ const ColumnEditModal = ({
     if (!column) return;
 
     try {
-      const response = await axios.put(
+      await axios.put(
         `http://localhost:8080/api/boards/${column.boardId}/columns/${column.id}`,
         { name: formData.name, position: formData.position },
         {
@@ -44,11 +37,7 @@ const ColumnEditModal = ({
         }
       );
 
-      onSave({
-        ...column,
-        title: response.data.name,
-        position: formData.position,
-      });
+      onRefresh();
       onClose();
     } catch (error) {
       console.error("Nie udało się zaktualizować kolumny:", error);
@@ -67,7 +56,7 @@ const ColumnEditModal = ({
         }
       );
 
-      onDelete(column.id);
+      onRefresh();
       onClose();
     } catch (error) {
       console.error("Nie udało się usunąć kolumny:", error);
