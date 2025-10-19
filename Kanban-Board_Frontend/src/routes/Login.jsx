@@ -26,12 +26,7 @@ const Login = () => {
         }
       );
 
-      const { accessToken, tokenType, error } = response.data;
-
-      if (error) {
-        setStatus(error);
-        return;
-      }
+      const { accessToken, tokenType } = response.data;
 
       if (!accessToken) {
         setStatus("Brak tokenu w odpowiedzi serwera.");
@@ -40,17 +35,16 @@ const Login = () => {
 
       if (tokenType && tokenType.toLowerCase() === "bearer") {
         setCookie("token", accessToken, { path: "/", maxAge: 30 * 60 });
-      } else {
-        console.warn("Token type is not 'Bearer', not storing the token.");
       }
 
       navigate("/boards");
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
+      const backendMessage =
+        err.response?.data?.message ||
         err.response?.data ||
-        "Błąd logowania. Spróbuj ponownie.";
-      setStatus(message);
+        "Wystąpił błąd podczas logowania. Spróbuj ponownie.";
+
+      setStatus(backendMessage);
     }
   };
 
@@ -79,7 +73,7 @@ const Login = () => {
       </form>
 
       {status && (
-        <p className="text-red-500 mt-3 text-center font-medium">{status}</p>
+        <p className="text-red-500 mt-3 text-center font-light">{status}</p>
       )}
 
       <p className="mt-4 text-sm text-center">

@@ -25,14 +25,14 @@ const Register = () => {
         confirmPassword,
       });
 
-      // Rejestracja przebiegła pomyślnie
       navigate("/login");
     } catch (err) {
-      if (err.response && err.response.data) {
-        setError(err.response.data);
-      } else {
-        setError("Błąd podczas rejestracji"); // fallback error
-      }
+      const backendMessage =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Błąd podczas rejestracji";
+
+      setError(backendMessage);
     }
   };
 
