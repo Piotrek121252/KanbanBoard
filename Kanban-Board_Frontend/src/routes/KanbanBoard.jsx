@@ -195,7 +195,7 @@ const KanbanBoard = () => {
                   title={col.title}
                   items={col.items}
                   boardId={col.boardId}
-                  onTaskClick={setSelectedTask}
+                  onTaskEdit={setSelectedTask}
                   onTaskDelete={handleDeleteTask}
                   onTaskPreview={handleTaskPreview}
                   onEdit={() => {
@@ -224,7 +224,7 @@ const KanbanBoard = () => {
         task={selectedTask}
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
-        onSave={fetchBoardData}
+        onRefresh={fetchBoardData}
       />
       <TaskAddModal
         columns={columns}

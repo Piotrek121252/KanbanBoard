@@ -71,7 +71,20 @@ public class ColumnService {
             throw new IllegalStateException("Nie można usunąć kolumny, która ma przypisane zadania");
         }
 
+        int deletedPosition = column.getPosition();
+        Board board = column.getBoard();
+
+        // Usuwamy kolumne z repozytorium
         columnRepository.delete(column);
+
+        // Aktualizowanie pozycji pozostałych kolumn
+        List<ColumnEntity> columns = columnRepository.findByBoardOrderByPosition(board);
+        for (ColumnEntity col : columns) {
+            if (col.getPosition() > deletedPosition) {
+                col.setPosition(col.getPosition() - 1);
+            }
+        }
+        columnRepository.saveAll(columns);
     }
 
     public ColumnDto updateColumnPosition(Integer columnId, Integer newPosition) {

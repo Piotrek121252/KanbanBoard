@@ -3,14 +3,14 @@ import Modal from "../Modal";
 import { useCookies } from "react-cookie";
 import axios from "axios";
 
-const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
-  const [cookie] = useCookies("token");
+const TaskEditModal = ({ task, columns, isOpen, onClose, onRefresh }) => {
+  const [cookie] = useCookies(["token"]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     dueDate: "",
     columnId: "",
-    // isActive: true,
+    isActive: true,
   });
 
   useEffect(() => {
@@ -20,19 +20,17 @@ const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
         description: task.description || "",
         dueDate: task.dueDate ? task.dueDate.slice(0, 16) : "",
         columnId: task.columnId || "",
-        // isActive: task.isActive ?? true, // Jeśli jest nullem to ustawiamy na true
+        isActive: task.isActive ?? true,
       });
     }
   }, [task, isOpen]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    // const { name, value, type, checked } = e.target;
-    // setFormData((prev) => ({
-    //   ...prev,
-    //   [name]: type === "checkbox" ? checked : value,
-    // }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -40,28 +38,18 @@ const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
     if (!task) return;
 
     try {
-      const response = await axios.put(
+      await axios.put(
         `http://localhost:8080/api/columns/${formData.columnId}/tasks/${task.id}`,
         {
           name: formData.name,
           description: formData.description,
           dueDate: formData.dueDate,
+          isActive: formData.isActive,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${cookie.token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
 
-      onSave({
-        ...task,
-        name: response.data.name,
-        description: response.data.description,
-        dueDate: response.data.dueDate,
-        // is_active: response.data.isActive,
-      });
-
+      onRefresh();
       onClose();
     } catch (error) {
       console.error("Nie udało się zaktualizować zadania:", error);
@@ -75,7 +63,6 @@ const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
         <label className="block text-gray-300 text-sm font-medium mb-1">
           Nazwa zadania
           <input
-            id="name"
             type="text"
             name="name"
             placeholder="Enter task title..."
@@ -88,7 +75,6 @@ const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
         <label className="block text-gray-300 text-sm font-medium mb-1">
           Opis zadania
           <textarea
-            id="description"
             name="description"
             placeholder="Dodaj opis..."
             value={formData.description}
@@ -101,7 +87,6 @@ const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
         <label className="block text-gray-300 text-sm font-medium mb-1">
           Data i czas zakończenia
           <input
-            id="dueDate"
             type="datetime-local"
             name="dueDate"
             value={formData.dueDate}
@@ -128,16 +113,13 @@ const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
 
         <div className="flex items-center gap-2">
           <input
-            id="isActive"
             type="checkbox"
             name="isActive"
             checked={formData.isActive}
             onChange={handleChange}
             className="h-4 w-4 accent-blue-600"
           />
-          <label htmlFor="isActive" className="text-gray-300 text-sm">
-            Ukończone?
-          </label>
+          <label className="text-gray-300 text-sm">Aktywne?</label>
         </div>
 
         <div className="flex justify-end">
@@ -145,7 +127,7 @@ const TaskEditModal = ({ columns, task, isOpen, onClose, onSave }) => {
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition"
           >
-            Zapisz zmiany!
+            Zapisz zmiany
           </button>
         </div>
       </form>

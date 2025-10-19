@@ -61,18 +61,23 @@ public class TaskService {
             task.setColumn(newColumn);
         }
 
+        Task saved = taskRepository.save(task);
+
+        return taskMapper.apply(saved);
+    }
+
+    public TaskDto updateTaskActive(Integer taskId, Boolean isActive) {
+        Task task = getTaskEntityById(taskId);
+        task.setIsActive(isActive);
+
+        Task saved = taskRepository.save(task);
+
         return taskMapper.apply(task);
     }
 
     public void deleteTask(Integer taskId) {
         Task task = getTaskEntityById(taskId);
         taskRepository.delete(task);
-    }
-
-    public TaskDto updateTaskActive(Integer taskId, Boolean isActive) {
-        Task task = getTaskEntityById(taskId);
-        task.setIsActive(isActive);
-        return taskMapper.apply(task);
     }
 
     Task getTaskEntityById(Integer taskId) {
