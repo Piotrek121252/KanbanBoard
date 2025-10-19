@@ -7,6 +7,7 @@ import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
 import pl.pwr.edu.KanbanBoard.repository.UserRepository;
+import pl.pwr.edu.KanbanBoard.service.mapper.BoardDtoMapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,17 +18,19 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final ColumnService columnService;
+    private final BoardDtoMapper boardDtoMapper;
 
 
-    public BoardService(BoardRepository boardRepository, UserRepository userRepository, ColumnService columnService) {
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository, ColumnService columnService, BoardDtoMapper boardDtoMapper) {
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
         this.columnService = columnService;
+        this.boardDtoMapper = boardDtoMapper;
     }
 
     public List<BoardDto> getAllBoards() {
         return boardRepository.findAll().stream()
-                .map(this::toDto)
+                .map(boardDtoMapper)
                 .collect(Collectors.toList());
     }
 
