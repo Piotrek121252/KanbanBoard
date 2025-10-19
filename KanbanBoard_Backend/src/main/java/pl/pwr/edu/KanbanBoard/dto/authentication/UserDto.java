@@ -1,4 +1,4 @@
-package pl.pwr.edu.KanbanBoard.dto;
+package pl.pwr.edu.KanbanBoard.dto.authentication;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

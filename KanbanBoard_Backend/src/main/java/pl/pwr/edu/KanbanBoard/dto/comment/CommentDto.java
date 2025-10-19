@@ -1,17 +1,15 @@
-package pl.pwr.edu.KanbanBoard.dto.Board;
+package pl.pwr.edu.KanbanBoard.dto.comment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class BoardDto {
+public class CommentDto {
     private Integer id;
-    private String name;
-    private Boolean isPublic;
+    private String comment;
+    private String username;
     private LocalDateTime createdDate;
-    private List<Integer> memberIds;
 }

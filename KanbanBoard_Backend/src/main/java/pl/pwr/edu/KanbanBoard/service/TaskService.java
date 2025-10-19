@@ -2,8 +2,8 @@ package pl.pwr.edu.KanbanBoard.service;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import pl.pwr.edu.KanbanBoard.dto.Task.CreateTaskDto;
-import pl.pwr.edu.KanbanBoard.dto.Task.TaskDto;
+import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskDto;
+import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.model.Task;
 import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;

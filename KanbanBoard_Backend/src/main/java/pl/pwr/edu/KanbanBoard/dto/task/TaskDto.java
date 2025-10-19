@@ -1,4 +1,4 @@
-package pl.pwr.edu.KanbanBoard.dto.Task;
+package pl.pwr.edu.KanbanBoard.dto.task;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

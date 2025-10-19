@@ -1,4 +1,4 @@
-package pl.pwr.edu.KanbanBoard.dto.Board;
+package pl.pwr.edu.KanbanBoard.dto.board;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

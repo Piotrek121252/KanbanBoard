@@ -5,8 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-import pl.pwr.edu.KanbanBoard.dto.Board.BoardDto;
-import pl.pwr.edu.KanbanBoard.dto.Board.CreateBoardDto;
+import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
+import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardDto;
 import pl.pwr.edu.KanbanBoard.service.BoardService;
 
 import java.util.List;

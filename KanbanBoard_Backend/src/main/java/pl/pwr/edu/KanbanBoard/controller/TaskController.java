@@ -2,11 +2,9 @@ package pl.pwr.edu.KanbanBoard.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-import pl.pwr.edu.KanbanBoard.dto.Task.CreateTaskDto;
-import pl.pwr.edu.KanbanBoard.dto.Task.TaskDto;
+import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskDto;
+import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;
 import pl.pwr.edu.KanbanBoard.service.TaskService;

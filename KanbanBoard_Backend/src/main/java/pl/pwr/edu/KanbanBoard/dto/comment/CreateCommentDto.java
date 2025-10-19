@@ -1,4 +1,4 @@
-package pl.pwr.edu.KanbanBoard.dto.Comment;
+package pl.pwr.edu.KanbanBoard.dto.comment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

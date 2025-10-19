@@ -1,10 +1,8 @@
 package pl.pwr.edu.KanbanBoard.service;
 
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import pl.pwr.edu.KanbanBoard.dto.Board.BoardDto;
-import pl.pwr.edu.KanbanBoard.dto.Board.CreateBoardDto;
+import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
+import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardDto;
 import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
@@ -33,9 +31,8 @@ public class BoardService {
                 .collect(Collectors.toList());
     }
 
-    public BoardDto getBoardById(Integer id) {
+    public Board getBoardById(Integer id) {
         return boardRepository.findById(id)
-                .map(this::toDto)
                 .orElseThrow(() -> new RuntimeException("Board not found"));
     }
 
@@ -62,7 +59,7 @@ public class BoardService {
         boardRepository.deleteById(id);
     }
 
-    private BoardDto toDto(Board board) {
+    public BoardDto toDto(Board board) {
         return new BoardDto(
                 board.getId(),
                 board.getName(),
@@ -70,11 +67,5 @@ public class BoardService {
                 board.getCreatedDate(),
                 board.getMembers().stream().map(UserEntity::getId).collect(Collectors.toList())
         );
-    }
-
-    private Board toEntity(BoardDto dto) {
-        Board board = new Board();
-        board.setName(dto.getName());
-        return board;
     }
 }

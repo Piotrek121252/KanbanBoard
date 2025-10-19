@@ -2,7 +2,7 @@ package pl.pwr.edu.KanbanBoard.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.pwr.edu.KanbanBoard.dto.Comment.CommentDto;
+import pl.pwr.edu.KanbanBoard.dto.comment.CommentDto;
 import pl.pwr.edu.KanbanBoard.model.Comment;
 import pl.pwr.edu.KanbanBoard.model.Task;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;
