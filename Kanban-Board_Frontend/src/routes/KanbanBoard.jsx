@@ -71,15 +71,18 @@ const KanbanBoard = () => {
               }))
           )
         );
-        const columnsWithTasks = columnsData.map((col) => {
-          const taskObj = tasksRes.find((t) => t.columnId === col.id);
-          return {
-            id: col.id.toString(),
-            title: col.name,
-            boardId: boardId,
-            items: taskObj ? taskObj.tasks : [],
-          };
-        });
+        const columnsWithTasks = columnsData
+          .map((col) => {
+            const taskObj = tasksRes.find((t) => t.columnId === col.id);
+            return {
+              id: col.id.toString(),
+              title: col.name,
+              boardId: boardId,
+              position: col.position,
+              items: taskObj ? taskObj.tasks : [],
+            };
+          })
+          .sort((a, b) => a.position - b.position);
 
         setColumns(columnsWithTasks);
       } catch (err) {
@@ -211,7 +214,7 @@ const KanbanBoard = () => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* Columns container */}
+        {/* Div na kolumny */}
         <div className="flex-1 overflow-x-auto overflow-y-auto">
           <div className="flex gap-4 h-full">
             {columns.map((col) => (
@@ -293,6 +296,7 @@ const KanbanBoard = () => {
       />
       <ColumnEditModal
         column={selectedColumn}
+        columns={columns}
         isOpen={isEditColumnOpen}
         onClose={() => setIsEditColumnOpen(false)}
         onSave={(updatedCol) => {

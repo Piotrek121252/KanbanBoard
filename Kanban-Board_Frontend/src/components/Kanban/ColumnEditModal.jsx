@@ -3,21 +3,32 @@ import Modal from "../Modal";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 
-const ColumnEditModal = ({ column, isOpen, onClose, onSave, onDelete }) => {
+const ColumnEditModal = ({
+  column,
+  columns,
+  isOpen,
+  onClose,
+  onSave,
+  onDelete,
+}) => {
   const [cookie] = useCookies(["token"]);
-  const [formData, setFormData] = useState({
-    name: "",
-  });
+  const [formData, setFormData] = useState({ name: "", position: 1 });
 
   useEffect(() => {
     if (isOpen && column) {
-      setFormData({ name: column.title || "" });
+      setFormData({
+        name: column.title || "",
+        position: column.position || 1,
+      });
     }
   }, [isOpen, column]);
 
   const handleChange = (e) => {
-    const { value } = e.target;
-    setFormData({ name: value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "position" ? parseInt(value, 10) : value,
+    }));
   };
 
   const handleSave = async (e) => {
@@ -27,19 +38,17 @@ const ColumnEditModal = ({ column, isOpen, onClose, onSave, onDelete }) => {
     try {
       const response = await axios.put(
         `http://localhost:8080/api/boards/${column.boardId}/columns/${column.id}`,
-        { name: formData.name, position: column.position },
+        { name: formData.name, position: formData.position },
         {
-          headers: {
-            Authorization: `Bearer ${cookie.token}`,
-          },
+          headers: { Authorization: `Bearer ${cookie.token}` },
         }
       );
 
       onSave({
         ...column,
         title: response.data.name,
+        position: formData.position,
       });
-
       onClose();
     } catch (error) {
       console.error("Nie udało się zaktualizować kolumny:", error);
@@ -54,9 +63,7 @@ const ColumnEditModal = ({ column, isOpen, onClose, onSave, onDelete }) => {
       await axios.delete(
         `http://localhost:8080/api/boards/${column.boardId}/columns/${column.id}`,
         {
-          headers: {
-            Authorization: `Bearer ${cookie.token}`,
-          },
+          headers: { Authorization: `Bearer ${cookie.token}` },
         }
       );
 
@@ -81,6 +88,22 @@ const ColumnEditModal = ({ column, isOpen, onClose, onSave, onDelete }) => {
             placeholder="Wpisz nową nazwę kolumny..."
             className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
           />
+        </label>
+
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Pozycja kolumny
+          <select
+            name="position"
+            value={formData.position}
+            onChange={handleChange}
+            className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
+          >
+            {Array.from({ length: columns.length }).map((_, index) => (
+              <option key={index + 1} value={index + 1}>
+                {index + 1}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div className="flex justify-between items-center mt-4">

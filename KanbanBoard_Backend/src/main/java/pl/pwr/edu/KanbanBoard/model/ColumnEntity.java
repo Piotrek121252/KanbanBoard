@@ -29,4 +29,9 @@ public class ColumnEntity {
     @OneToMany(mappedBy = "column", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
 
+    public ColumnEntity(Board board, String name, Integer position) {
+        this.board = board;
+        this.name = name;
+        this.position = position;
+    }
 }

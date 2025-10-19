@@ -1,6 +1,5 @@
 package pl.pwr.edu.KanbanBoard.service;
 
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.column.ColumnDto;
 import pl.pwr.edu.KanbanBoard.exceptions.ColumnNotFoundException;
@@ -119,11 +118,4 @@ public class ColumnService {
         return columnRepository.findById(columnId)
                 .orElseThrow(() -> new ColumnNotFoundException(columnId));
     }
-
-    public void createDefaultColumns(Board board) {
-        createColumn(board.getId(), "TO-DO", 1);
-        createColumn(board.getId(), "In-Progress", 2);
-        createColumn(board.getId(), "Done", 3);
-    }
-
 }
