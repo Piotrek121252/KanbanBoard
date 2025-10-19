@@ -23,15 +23,16 @@ public class CommentController {
     }
 
     @GetMapping
-    public List<CommentDto> getComments(@PathVariable Integer taskId) {
-        return commentService.getCommentsByTask(taskId);
+    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Integer taskId) {
+        return ResponseEntity.ok(commentService.getCommentsByTask(taskId));
     }
 
     @PostMapping
-    public CommentDto addComment(@PathVariable Integer taskId,
-                                 @RequestBody CreateCommentRequest dto,
+    public ResponseEntity<CommentDto> addComment(@PathVariable Integer taskId,
+                                 @RequestBody CreateCommentRequest request,
                                  @AuthenticationPrincipal User user) {
-        return commentService.addComment(taskId, user.getUsername(), dto.getComment());
+        CommentDto created = commentService.addComment(taskId, user.getUsername(), request.comment());
+        return ResponseEntity.ok(created);
     }
 
     @DeleteMapping("/{commentId}")
@@ -41,5 +42,4 @@ public class CommentController {
         commentService.deleteComment(commentId, user.getUsername());
         return ResponseEntity.noContent().build();
     }
-
 }

@@ -1,39 +1,42 @@
 package pl.pwr.edu.KanbanBoard.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.comment.CommentDto;
+import pl.pwr.edu.KanbanBoard.exceptions.CommentNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.UnauthorizedCommentDeleteException;
 import pl.pwr.edu.KanbanBoard.model.Comment;
 import pl.pwr.edu.KanbanBoard.model.Task;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;
 import pl.pwr.edu.KanbanBoard.repository.CommentRepository;
-import pl.pwr.edu.KanbanBoard.repository.TaskRepository;
-import pl.pwr.edu.KanbanBoard.repository.UserRepository;
+import pl.pwr.edu.KanbanBoard.service.mapper.CommentMapper;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
+    private final TaskService taskService;
+    private final UserService userService;
+    private final CommentMapper commentMapper;
+
+    public CommentService(CommentRepository commentRepository, TaskService taskService, UserService userService, CommentMapper commentMapper) {
+        this.commentRepository = commentRepository;
+        this.taskService = taskService;
+        this.userService = userService;
+        this.commentMapper = commentMapper;
+    }
 
     public List<CommentDto> getCommentsByTask(Integer taskId) {
         return commentRepository.findByTaskIdOrderByCreatedDateAsc(taskId)
                 .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+                .map(commentMapper)
+                .toList();
     }
 
     public CommentDto addComment(Integer taskId, String username, String text) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono zadania"));
-
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono uzytkownika"));
+        Task task = taskService.getTaskEntityById(taskId);
+        UserEntity user = userService.getUserByUsername(username);
 
         Comment comment = new Comment();
         comment.setTask(task);
@@ -41,26 +44,17 @@ public class CommentService {
         comment.setComment(text);
 
         Comment saved = commentRepository.save(comment);
-        return  toDto(saved);
+        return commentMapper.apply(saved);
     }
 
     public void deleteComment(Integer commentId, String username) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono komentarza"));
+                .orElseThrow(() -> new CommentNotFoundException(commentId));
 
         if (!comment.getUser().getUsername().equals(username)) {
-            throw new RuntimeException("Komentarz moze byc usuniety tylko przez uzytkownika, ktory go dodal");
+            throw new UnauthorizedCommentDeleteException();
         }
 
         commentRepository.delete(comment);
-    }
-
-    private CommentDto toDto(Comment comment) {
-        return new CommentDto(
-                comment.getId(),
-                comment.getComment(),
-                comment.getUser().getUsername(),
-                comment.getCreatedDate()
-        );
     }
 }

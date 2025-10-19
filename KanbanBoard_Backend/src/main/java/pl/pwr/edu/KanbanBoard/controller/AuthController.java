@@ -47,7 +47,7 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginDto.getUsername(), loginDto.getPassword()
+                            loginDto.username(), loginDto.password()
                     )
             );
 
@@ -70,7 +70,7 @@ public class AuthController {
     public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
 
         // Walidacja username
-        String username = registerDto.getUsername();
+        String username = registerDto.username();
         if (username == null || username.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Username cannot be empty.");
         } else if (username.length() < 3 || username.length() > 20) {
@@ -80,7 +80,7 @@ public class AuthController {
         }
 
         // Walidacja adresu e-mail
-        String email = registerDto.getEmail();
+        String email = registerDto.email();
         if (email == null || email.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Email cannot be empty.");
         }
@@ -95,8 +95,8 @@ public class AuthController {
         }
 
         // Walidacja hasła
-        String password = registerDto.getPassword();
-        String confirmPassword = registerDto.getConfirmPassword();
+        String password = registerDto.password();
+        String confirmPassword = registerDto.confirmPassword();
         if (password == null || password.isBlank()) {
             return ResponseEntity.badRequest().body("Password cannot be empty.");
         } else if (password.length() < 8 || password.length() > 64) {
@@ -107,8 +107,8 @@ public class AuthController {
 
         // Tworzenie i zapisanie użytkownika
         UserEntity user = new UserEntity();
-        user.setUsername(registerDto.getUsername());
-        user.setEmail(registerDto.getEmail());
+        user.setUsername(registerDto.username());
+        user.setEmail(registerDto.email());
         user.setPassword(passwordEncoder.encode(password));
 
         Role role = roleRepository.findByName("USER")
