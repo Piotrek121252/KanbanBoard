@@ -30,6 +30,7 @@ const KanbanBoard = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [columns, setColumns] = useState([]);
   const [activeId, setActiveId] = useState(null);
+  const [originalColumnId, setOriginalColumnId] = useState(null);
   const [isAddColumnOpen, setIsAddColumnOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [isEditColumnOpen, setIsEditColumnOpen] = useState(false);
@@ -104,12 +105,21 @@ const KanbanBoard = () => {
       await fetchBoardData();
     } catch (err) {
       console.error("Nie udało się usunąć zadania:", err);
+      // Może zamienić na react-toast
       alert("Nie udało się usunąć zadania");
     }
   };
 
-  const handleDragStart = (event) => setActiveId(event.active.id);
-  const handleDragCancel = () => setActiveId(null);
+  const handleDragStart = (event) => {
+    const { id } = event.active;
+    setActiveId(id);
+    setOriginalColumnId(findColumnId(id));
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+    setOriginalColumnId(null);
+  };
 
   const handleDragOver = (event) => {
     const { active, over } = event;
@@ -130,26 +140,78 @@ const KanbanBoard = () => {
     });
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = async (event) => {
     const { active, over } = event;
-    if (!over) return setActiveId(null);
 
-    const activeCol = findColumnId(active.id);
-    const overCol = findColumnId(over.id);
-    if (!activeCol || !overCol) return;
+    const resetDragState = () => {
+      setActiveId(null);
+      setOriginalColumnId(null);
+    };
 
-    if (activeCol === overCol && active.id !== over.id) {
-      setColumns((prev) =>
-        prev.map((c) => {
-          if (c.id !== activeCol) return c;
-          const oldIndex = c.items.findIndex((i) => i.id === active.id);
-          const newIndex = c.items.findIndex((i) => i.id === over.id);
-          return { ...c, items: arrayMove(c.items, oldIndex, newIndex) };
-        })
-      );
+    if (!over) {
+      resetDragState();
+      return;
     }
 
-    setActiveId(null);
+    const overColId = findColumnId(over.id);
+
+    if (!originalColumnId || !overColId) {
+      resetDragState();
+      return;
+    }
+
+    const taskId = active.id;
+
+    if (originalColumnId === overColId) {
+      if (active.id !== over.id) {
+        setColumns((prev) =>
+          prev.map((c) => {
+            if (c.id !== originalColumnId) return c;
+            const oldIndex = c.items.findIndex((i) => i.id === active.id);
+            const newIndex = c.items.findIndex((i) => i.id === over.id);
+            if (oldIndex !== -1 && newIndex !== -1) {
+              return { ...c, items: arrayMove(c.items, oldIndex, newIndex) };
+            }
+            return c;
+          })
+        );
+      }
+      resetDragState();
+      return;
+    }
+
+    if (originalColumnId !== overColId) {
+      const overColumnState = columns.find((c) => c.id === overColId);
+      const taskState = overColumnState?.items.find((t) => t.id === taskId);
+
+      if (!taskState) {
+        console.error("Nie znaleziono task state po update.");
+        await fetchBoardData();
+        resetDragState();
+        return;
+      }
+
+      try {
+        await axios.put(
+          `http://localhost:8080/api/columns/${overColId}/tasks/${taskId}`,
+          {
+            name: taskState.name,
+            description: taskState.description,
+            isActive: taskState.isActive,
+            dueDate: taskState.dueDate,
+          },
+          { headers: { Authorization: `Bearer ${cookie.token}` } }
+        );
+
+        // await fetchBoardData();
+      } catch (err) {
+        console.error("Nie udało się przenieść zadania:", err);
+        alert("Błąd podczas przenoszenia zadania.");
+        await fetchBoardData();
+      }
+    }
+
+    resetDragState();
   };
 
   const getActiveTask = () =>
