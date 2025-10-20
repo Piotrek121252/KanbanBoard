@@ -30,7 +30,7 @@ public class TaskService {
 
     public List<TaskDto> getTasksByColumnId(Integer columnId) {
         ColumnEntity column = columnService.getColumnEntityById(columnId);
-        return taskMapper.toDtoList(taskRepository.findByColumnIdOrderByCreatedDateAsc(column.getId()));
+        return taskMapper.toDtoList(taskRepository.findByColumnIdOrderByPositionAsc(column.getId()));
     }
 
     public TaskDto createTask(Integer columnId, CreateTaskRequest createTaskDto) {
@@ -44,6 +44,13 @@ public class TaskService {
         task.setCreatedDate(LocalDateTime.now());
         task.setDueDate(createTaskDto.dueDate());
 
+        int maxPosition = taskRepository.findByColumnIdOrderByPositionDesc(column.getId())
+                .stream()
+                .findFirst()
+                .map(Task::getPosition)
+                .orElse(0);
+        task.setPosition(maxPosition + 1);
+
         Task saved = taskRepository.save(task);
         return taskMapper.apply(saved);
     }
@@ -56,14 +63,44 @@ public class TaskService {
         if (request.dueDate() != null) task.setDueDate(request.dueDate());
         if (request.isActive() != null) task.setIsActive(request.isActive());
 
-        if (!columnId.equals(task.getColumn().getId())) {
+        ColumnEntity currentColumn = task.getColumn();
+
+        if (!columnId.equals(currentColumn.getId())) {
             ColumnEntity newColumn = columnService.getColumnEntityById(columnId);
             task.setColumn(newColumn);
+
+            if (request.position() != null) {
+                task.setPosition(request.position());
+                adjustTaskPositions(newColumn.getId(), task.getId(), request.position());
+            } else {
+                int maxPosition = taskRepository.findByColumnIdOrderByPositionDesc(newColumn.getId())
+                        .stream()
+                        .findFirst()
+                        .map(Task::getPosition)
+                        .orElse(0);
+                task.setPosition(maxPosition + 1);
+            }
+        } else if (request.position() != null) {
+            // Reorder within same column
+            adjustTaskPositions(currentColumn.getId(), task.getId(), request.position());
+            task.setPosition(request.position());
         }
 
         Task saved = taskRepository.save(task);
-
         return taskMapper.apply(saved);
+    }
+
+    private void adjustTaskPositions(Integer columnId, Integer taskId, int newPosition) {
+        List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAsc(columnId);
+
+        for (Task t : tasks) {
+            if (!t.getId().equals(taskId)) {
+                if (t.getPosition() >= newPosition) {
+                    t.setPosition(t.getPosition() + 1);
+                    taskRepository.save(t);
+                }
+            }
+        }
     }
 
     public TaskDto updateTaskActive(Integer taskId, Boolean isActive) {
@@ -72,12 +109,23 @@ public class TaskService {
 
         Task saved = taskRepository.save(task);
 
-        return taskMapper.apply(task);
+        return taskMapper.apply(saved);
     }
 
     public void deleteTask(Integer taskId) {
         Task task = getTaskEntityById(taskId);
+        int deletedPosition = task.getPosition();
+        ColumnEntity column = task.getColumn();
+
         taskRepository.delete(task);
+
+        List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAsc(column.getId());
+        for (Task t : tasks) {
+            if (t.getPosition() > deletedPosition) {
+                t.setPosition(t.getPosition() - 1);
+            }
+        }
+        taskRepository.saveAll(tasks);
     }
 
     Task getTaskEntityById(Integer taskId) {

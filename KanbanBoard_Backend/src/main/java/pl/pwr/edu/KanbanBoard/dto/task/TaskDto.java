@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public record TaskDto(
         Integer id,
+        Integer position,
         Integer columnId,
         String name,
         String description,

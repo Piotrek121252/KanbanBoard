@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Integer> {
     List<Task> findByColumnIdOrderByCreatedDateAsc(Integer columnId);
+
+    List<Task> findByColumnIdOrderByPositionDesc(Integer columnId);
+
+    List<Task> findByColumnIdOrderByPositionAsc(Integer columnId);
 }

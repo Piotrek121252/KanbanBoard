@@ -15,6 +15,7 @@ public class TaskMapper implements Function<Task, TaskDto> {
     public TaskDto apply(Task task) {
         return new TaskDto(
                 task.getId(),
+                task.getPosition(),
                 task.getColumn().getId(),
                 task.getName(),
                 task.getDescription(),

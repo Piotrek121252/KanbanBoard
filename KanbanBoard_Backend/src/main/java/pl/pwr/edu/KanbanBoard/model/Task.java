@@ -22,6 +22,9 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(nullable = false)
+    private Integer position;
+
     @ManyToOne
     @JoinColumn(name = "column_id", nullable = false)
     private ColumnEntity column;

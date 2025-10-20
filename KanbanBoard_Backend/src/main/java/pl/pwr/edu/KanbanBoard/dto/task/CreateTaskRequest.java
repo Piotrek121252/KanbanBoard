@@ -6,5 +6,6 @@ public record CreateTaskRequest(
         String name,
         String description,
         Boolean isActive,
-        LocalDateTime dueDate
+        LocalDateTime dueDate,
+        Integer position
 ) {}

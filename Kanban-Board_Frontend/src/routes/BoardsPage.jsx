@@ -150,7 +150,7 @@ const BoardsPage = () => {
             disabled={creating}
             className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition disabled:opacity-50"
           >
-            {creating ? "Creating..." : "Create Board"}
+            Stwórz tablicę!
           </button>
         </form>
       </Modal>
