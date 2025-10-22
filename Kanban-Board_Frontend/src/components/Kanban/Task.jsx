@@ -2,8 +2,9 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TbEdit } from "react-icons/tb";
 import { FaTrash } from "react-icons/fa";
+import { FaToggleOn, FaToggleOff } from "react-icons/fa6";
 
-const Task = ({ task, onEdit, onDelete, onPreview }) => {
+const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
   const { id, name, description, dueDate, isActive } = task;
   const {
     attributes,
@@ -25,15 +26,27 @@ const Task = ({ task, onEdit, onDelete, onPreview }) => {
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-grab rounded-xl border border-gray-700 bg-gray-800 p-3 active:cursor-grabbing ${
+      className={`cursor-grab rounded-xl border border-gray-700 ${isActive ? "bg-gray-800" : "bg-gray-750"} p-3 active:cursor-grabbing ${
         isDragging ? "opacity-50 shadow-lg" : ""
       }`}
     >
       <div className="flex flex-col gap-1" onClick={() => onPreview?.(task)}>
-        <h4 className="font-semibold text-gray-200">{name}</h4>
-        <p className="text-gray-400 text-sm">{description}</p>
+        <h4
+          className={`font-semibold ${
+            isActive ? "text-gray-200" : "text-red-400 line-through"
+          }`}
+        >
+          {name}
+        </h4>
+        <p
+          className={`text-sm ${
+            isActive ? "text-gray-400" : "text-red-300 line-through"
+          }`}
+        >
+          {description}
+        </p>
         <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>
+          <span className={isActive ? "" : "line-through text-red-300"}>
             {dueDate
               ? new Date(dueDate).toLocaleString(undefined, {
                   dateStyle: "medium",
@@ -41,22 +54,33 @@ const Task = ({ task, onEdit, onDelete, onPreview }) => {
                 })
               : "Brak deadline"}
           </span>
-          <span>{isActive ? "Active" : "Inactive"}</span>
+          <span
+            className={`font-medium ${
+              isActive ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {isActive ? "Active" : "Inactive"}
+          </span>
+        </div>
+
+        <div className="flex justify-end mt-2 gap-2">
           <div className="text-[10px] text-yellow-400 mt-1">
             Position: {task.position ?? "N/A"}
           </div>
-        </div>
-        <div className="flex justify-end mt-2 gap-2">
           <button
             type="button"
-            className="text-red-500 hover:text-red-400"
+            className={`transition ${
+              isActive
+                ? "text-green-400 hover:text-green-300"
+                : "text-red-400 hover:text-red-300"
+            }`}
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(task.id, task.columnId);
+              onToggleActive?.(task);
             }}
-            title="Usuń zadanie"
+            title={isActive ? "Dezaktywuj zadanie" : "Aktywuj zadanie"}
           >
-            <FaTrash size={16} />
+            {isActive ? <FaToggleOn size={20} /> : <FaToggleOff size={20} />}
           </button>
 
           <button
@@ -69,6 +93,18 @@ const Task = ({ task, onEdit, onDelete, onPreview }) => {
             title="Edytuj zadanie"
           >
             <TbEdit size={20} />
+          </button>
+
+          <button
+            type="button"
+            className="text-red-500 hover:text-red-400"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task.id, task.columnId);
+            }}
+            title="Usuń zadanie"
+          >
+            <FaTrash size={16} />
           </button>
         </div>
       </div>

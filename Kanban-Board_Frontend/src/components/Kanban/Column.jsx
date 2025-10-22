@@ -14,6 +14,7 @@ const Column = ({
   onTaskEdit,
   onTaskDelete,
   onTaskPreview,
+  onTaskToggleActive,
   onEdit,
   onMoveLeft,
   onMoveRight,
@@ -71,6 +72,7 @@ const Column = ({
               onEdit={() => onTaskEdit(task)}
               onDelete={onTaskDelete}
               onPreview={onTaskPreview}
+              onToggleActive={onTaskToggleActive}
             />
           ))}
         </ul>

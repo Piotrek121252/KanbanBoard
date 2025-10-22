@@ -86,7 +86,7 @@ const KanbanBoard = () => {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 100, tolerance: 5 },
+      activationConstraint: { delay: 125, tolerance: 5 },
     }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
@@ -108,6 +108,22 @@ const KanbanBoard = () => {
     } catch (err) {
       console.error("Nie udało się usunąć zadania:", err);
       alert("Nie udało się usunąć zadania");
+    }
+  };
+
+  const handleToggleTaskActive = async (task) => {
+    try {
+      await axios.patch(
+        `http://localhost:8080/api/columns/${task.columnId}/tasks/${task.id}/active`,
+        { isActive: !task.isActive },
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+
+      await fetchBoardData();
+    } catch (err) {
+      console.error("Nie udało się zmienić statusu zadania:", err);
+      alert("Błąd: Nie udało się zmienić statusu zadania");
+      await fetchBoardData();
     }
   };
 
@@ -293,6 +309,7 @@ const KanbanBoard = () => {
                   onTaskEdit={setSelectedTask}
                   onTaskDelete={handleDeleteTask}
                   onTaskPreview={handleTaskPreview}
+                  onTaskToggleActive={handleToggleTaskActive}
                   onEdit={() => {
                     setSelectedColumn(col);
                     setIsEditColumnOpen(true);
