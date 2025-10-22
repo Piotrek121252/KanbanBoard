@@ -5,5 +5,6 @@ public record ColumnDto(
         Integer id,
         Integer boardId,
         String name,
-        Integer position
+        Integer position,
+        String color
 ) {}

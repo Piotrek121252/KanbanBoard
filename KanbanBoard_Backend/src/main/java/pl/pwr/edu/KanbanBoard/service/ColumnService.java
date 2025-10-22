@@ -2,6 +2,7 @@ package pl.pwr.edu.KanbanBoard.service;
 
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.column.ColumnDto;
+import pl.pwr.edu.KanbanBoard.dto.column.CreateColumnRequest;
 import pl.pwr.edu.KanbanBoard.exceptions.ColumnNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
@@ -30,12 +31,12 @@ public class ColumnService {
         return columnMapper.toDtoList(columns);
     }
 
-    public ColumnDto createColumn(Integer boardId, String name, Integer requestedPosition) {
+    public ColumnDto createColumn(Integer boardId, CreateColumnRequest request) {
         Board board = boardService.getBoardEntityById(boardId);
 
         List<ColumnEntity> columns = columnRepository.findByBoardOrderByPosition(board);
         int maxPosition = columns.size() + 1;
-        int newPosition = Math.max(1, Math.min(requestedPosition != null ? requestedPosition : maxPosition, maxPosition));
+        int newPosition = Math.max(1, Math.min(request.position() != null ? request.position() : maxPosition, maxPosition));
 
         for (ColumnEntity col : columns) {
             if (col.getPosition() >= newPosition) {
@@ -46,24 +47,26 @@ public class ColumnService {
 
         ColumnEntity column = new ColumnEntity();
         column.setBoard(board);
-        column.setName(name);
+        column.setName(request.name());
         column.setPosition(newPosition);
+        column.setColor(request.color() != null ? request.color() : "#4b5563");
 
         ColumnEntity saved = columnRepository.save(column);
         return columnMapper.apply(saved);
     }
 
-    public ColumnDto updateColumn(Integer boardId, Integer columnId, String name, Integer requestedPosition) {
+    public ColumnDto updateColumn(Integer boardId, Integer columnId, CreateColumnRequest request) {
         ColumnEntity column = getColumnEntityByIdAndBoard(columnId, boardId);
 
-        if (name != null)
-            column.setName(name);
-        if (requestedPosition != null) {
-            updateColumnPosition(columnId, requestedPosition);
-        }
+        if (request.name() != null)
+            column.setName(request.name());
+        if (request.position() != null)
+            updateColumnPosition(columnId, request.position());
+        if (request.color() != null)
+            column.setColor(request.color());
 
-        return columnMapper.apply(columnRepository.findById(columnId)
-                .orElseThrow(() -> new ColumnNotFoundException(columnId)));
+        ColumnEntity saved = columnRepository.save(column);
+        return columnMapper.apply(saved);
     }
 
     public void deleteColumn(Integer boardId, Integer columnId) {

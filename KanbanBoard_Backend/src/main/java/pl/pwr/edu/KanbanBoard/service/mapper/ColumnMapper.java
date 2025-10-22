@@ -17,7 +17,8 @@ public class ColumnMapper implements Function<ColumnEntity, ColumnDto> {
                 column.getId(),
                 column.getBoard().getId(),
                 column.getName(),
-                column.getPosition()
+                column.getPosition(),
+                column.getColor()
         );
     }
 

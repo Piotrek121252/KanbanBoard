@@ -10,6 +10,7 @@ const Column = ({
   id,
   title,
   items,
+  color,
   boardId,
   onTaskEdit,
   onTaskDelete,
@@ -26,7 +27,10 @@ const Column = ({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col rounded-xl border border-gray-700 bg-gray-800/70 p-3"
+      className="flex flex-col rounded-xl border border-gray-700 p-3"
+      style={{
+        backgroundColor: color || "#6b7280", // fallback to default gray
+      }}
     >
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-semibold text-gray-200">{title}</h3>

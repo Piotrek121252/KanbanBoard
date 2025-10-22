@@ -29,8 +29,8 @@ public class ColumnController {
 
     @PostMapping
     public ResponseEntity<ColumnDto> createColumn(@PathVariable Integer boardId,
-                                                  @RequestBody CreateColumnRequest dto) {
-        ColumnDto created = columnService.createColumn(boardId, dto.name(), dto.position());
+                                                  @RequestBody CreateColumnRequest request) {
+        ColumnDto created = columnService.createColumn(boardId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -38,7 +38,7 @@ public class ColumnController {
     public ResponseEntity<ColumnDto> updateColumn(@PathVariable Integer boardId,
                                                   @PathVariable Integer columnId,
                                                   @RequestBody CreateColumnRequest request) {
-        ColumnDto updated = columnService.updateColumn(boardId, columnId, request.name(), request.position());
+        ColumnDto updated = columnService.updateColumn(boardId, columnId, request);
         return ResponseEntity.ok(updated);
     }
 

@@ -26,6 +26,9 @@ public class ColumnEntity {
     @Column(nullable = false)
     private Integer position;
 
+    @Column(nullable = false)
+    private String color = "#4b5563";
+
     @OneToMany(mappedBy = "column", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
 

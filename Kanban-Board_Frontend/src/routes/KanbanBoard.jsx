@@ -21,6 +21,15 @@ import ColumnAddModal from "../components/Kanban/ColumnAddModal";
 import ColumnEditModal from "../components/Kanban/ColumnEditModal";
 import { useParams } from "react-router-dom";
 
+const COLUMN_COLORS = [
+  { color: "#3730a3" }, // Dark Indigo
+  { color: "#15803d" }, // Dark Green
+  { color: "#b91c1c" }, // Dark Red
+  { color: "#b45309" }, // Dark Amber
+  { color: "#0369a1" }, // Dark Blue
+  { color: "#4b5563", isDefault: true }, // Dark Gray — default
+];
+
 const KanbanBoard = () => {
   const { id: boardId } = useParams();
   const [addModalColumnId, setAddModalColumnId] = useState(null);
@@ -69,6 +78,7 @@ const KanbanBoard = () => {
           title: col.name,
           boardId,
           position: col.position,
+          color: col.color,
           items: taskObj ? taskObj.tasks : [],
         };
       });
@@ -305,6 +315,7 @@ const KanbanBoard = () => {
                   id={col.id}
                   title={col.title}
                   items={col.items}
+                  color={col.color}
                   boardId={col.boardId}
                   onTaskEdit={setSelectedTask}
                   onTaskDelete={handleDeleteTask}
@@ -339,6 +350,7 @@ const KanbanBoard = () => {
       {/* Miejsce na modale*/}
       <TaskEditModal
         columns={columns}
+        columnColors={COLUMN_COLORS}
         task={selectedTask}
         isOpen={!!selectedTask}
         onClose={() => setSelectedTask(null)}
@@ -346,6 +358,7 @@ const KanbanBoard = () => {
       />
       <TaskAddModal
         columns={columns}
+        columnColors={COLUMN_COLORS}
         isOpen={!!addModalColumnId}
         onClose={() => setAddModalColumnId(null)}
         onSave={fetchBoardData}
