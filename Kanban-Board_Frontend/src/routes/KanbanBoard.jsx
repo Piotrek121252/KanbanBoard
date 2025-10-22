@@ -228,6 +228,28 @@ const KanbanBoard = () => {
   const getActiveTask = () =>
     columns.flatMap((c) => c.items).find((i) => i.id === activeId);
 
+  const handleMoveColumn = async (columnId, delta) => {
+    const index = columns.findIndex((c) => c.id === columnId);
+    const newIndex = index + delta;
+
+    if (newIndex < 0 || newIndex >= columns.length) return;
+
+    setColumns((prev) => arrayMove(prev, index, newIndex));
+
+    try {
+      await axios.patch(
+        `http://localhost:8080/api/boards/${boardId}/columns/${columnId}/position`,
+        { newPosition: newIndex + 1 },
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      await fetchBoardData();
+    } catch (err) {
+      console.error("Nie udało się zmienić pozycji kolumny:", err);
+      alert("Błąd: Nie udało się zmienić pozycji kolumny");
+      await fetchBoardData();
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-100 pt-20">
       <div className="flex justify-between items-center mb-4 px-6">
@@ -275,6 +297,12 @@ const KanbanBoard = () => {
                     setSelectedColumn(col);
                     setIsEditColumnOpen(true);
                   }}
+                  onMoveLeft={col.position > 1 ? handleMoveColumn : undefined}
+                  onMoveRight={
+                    col.position < columns.length ? handleMoveColumn : undefined
+                  }
+                  isFirst={col.position === 1}
+                  isLast={col.position === columns.length}
                 />
               </div>
             ))}

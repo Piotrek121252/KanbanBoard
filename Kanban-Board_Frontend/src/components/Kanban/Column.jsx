@@ -4,7 +4,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import Task from "./Task";
-import { FaCog } from "react-icons/fa";
+import { FaCog, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 
 const Column = ({
   id,
@@ -15,6 +15,10 @@ const Column = ({
   onTaskDelete,
   onTaskPreview,
   onEdit,
+  onMoveLeft,
+  onMoveRight,
+  isFirst,
+  isLast,
 }) => {
   const { setNodeRef } = useDroppable({ id });
 
@@ -29,6 +33,22 @@ const Column = ({
           <span className="text-xs bg-gray-700 text-gray-100 rounded-full px-2 py-0.5">
             {items.length}
           </span>
+          <button
+            onClick={() => onMoveLeft && onMoveLeft(id, -1)}
+            disabled={isFirst}
+            className={`text-gray-400 hover:text-white transition ${isFirst ? "opacity-50 cursor-not-allowed" : ""}`}
+            title="Przesuń w lewo"
+          >
+            <FaArrowLeft size={14} />
+          </button>
+          <button
+            onClick={() => onMoveRight && onMoveRight(id, 1)}
+            disabled={isLast}
+            className={`text-gray-400 hover:text-white transition ${isLast ? "opacity-50 cursor-not-allowed" : ""}`}
+            title="Przesuń w prawo"
+          >
+            <FaArrowRight size={14} />
+          </button>
           <button
             onClick={() => onEdit && onEdit({ id, title })}
             className="text-gray-400 hover:text-white transition"
