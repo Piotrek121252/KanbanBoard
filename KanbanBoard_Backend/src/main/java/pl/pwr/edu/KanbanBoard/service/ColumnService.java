@@ -25,7 +25,9 @@ public class ColumnService {
 
     public List<ColumnDto> getColumnsByBoardId(Integer boardId) {
         Board board = boardService.getBoardEntityById(boardId);
-        return columnMapper.toDtoList(board.getColumns());
+        List<ColumnEntity> columns = columnRepository.findByBoardOrderByPosition(board);
+
+        return columnMapper.toDtoList(columns);
     }
 
     public ColumnDto createColumn(Integer boardId, String name, Integer requestedPosition) {

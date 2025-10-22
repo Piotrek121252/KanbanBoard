@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.pwr.edu.KanbanBoard.dto.task.ChangeTaskPositionRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
 import pl.pwr.edu.KanbanBoard.dto.task.UpdateTaskStatusRequest;
@@ -57,5 +58,13 @@ public class TaskController {
 
         TaskDto updated = taskService.updateTaskActive(taskId, request.isActive());
         return ResponseEntity.ok(updated);
+    }
+    @PatchMapping("/{taskId}/position")
+    public ResponseEntity<TaskDto> moveTask(
+            @PathVariable Integer taskId,
+            @RequestBody ChangeTaskPositionRequest request) {
+
+        TaskDto taskDto = taskService.moveTask(taskId, request);
+        return ResponseEntity.ok(taskDto);
     }
 }

@@ -1,22 +1,22 @@
 package pl.pwr.edu.KanbanBoard.service;
 
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import pl.pwr.edu.KanbanBoard.dto.task.ChangeTaskPositionRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
 import pl.pwr.edu.KanbanBoard.exceptions.TaskNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.model.Task;
-import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;
 import pl.pwr.edu.KanbanBoard.repository.TaskRepository;
 import pl.pwr.edu.KanbanBoard.service.mapper.TaskMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
+
+    private static final int POSITION_GAP = 65536;
 
     private final TaskRepository taskRepository;
     private final ColumnService columnService;
@@ -33,23 +33,22 @@ public class TaskService {
         return taskMapper.toDtoList(taskRepository.findByColumnIdOrderByPositionAsc(column.getId()));
     }
 
-    public TaskDto createTask(Integer columnId, CreateTaskRequest createTaskDto) {
+    public TaskDto createTask(Integer columnId, CreateTaskRequest request) {
         ColumnEntity column = columnService.getColumnEntityById(columnId);
 
         Task task = new Task();
         task.setColumn(column);
-        task.setName(createTaskDto.name());
-        task.setDescription(createTaskDto.description());
-        task.setIsActive(true);
+        task.setName(request.name());
+        task.setDescription(request.description());
+        task.setIsActive(request.isActive() != null ? request.isActive() : true);
         task.setCreatedDate(LocalDateTime.now());
-        task.setDueDate(createTaskDto.dueDate());
+        task.setDueDate(request.dueDate());
 
-        int maxPosition = taskRepository.findByColumnIdOrderByPositionDesc(column.getId())
-                .stream()
-                .findFirst()
-                .map(Task::getPosition)
-                .orElse(0);
-        task.setPosition(maxPosition + 1);
+        List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAsc(column.getId());
+        int newPosition = request.position() != null
+                ? request.position()
+                : (tasks.isEmpty() ? POSITION_GAP : tasks.get(tasks.size() - 1).getPosition() + POSITION_GAP);
+        task.setPosition(newPosition);
 
         Task saved = taskRepository.save(task);
         return taskMapper.apply(saved);
@@ -69,38 +68,44 @@ public class TaskService {
             ColumnEntity newColumn = columnService.getColumnEntityById(columnId);
             task.setColumn(newColumn);
 
-            if (request.position() != null) {
-                task.setPosition(request.position());
-                adjustTaskPositions(newColumn.getId(), task.getId(), request.position());
-            } else {
-                int maxPosition = taskRepository.findByColumnIdOrderByPositionDesc(newColumn.getId())
-                        .stream()
-                        .findFirst()
-                        .map(Task::getPosition)
-                        .orElse(0);
-                task.setPosition(maxPosition + 1);
-            }
-        } else if (request.position() != null) {
-            // Reorder within same column
-            adjustTaskPositions(currentColumn.getId(), task.getId(), request.position());
-            task.setPosition(request.position());
+            List<Task> tasksInNewColumn = taskRepository.findByColumnIdOrderByPositionAsc(newColumn.getId());
+            int newPos = tasksInNewColumn.isEmpty() ? POSITION_GAP :
+                    tasksInNewColumn.get(tasksInNewColumn.size() - 1).getPosition() + POSITION_GAP;
+            task.setPosition(newPos);
         }
 
         Task saved = taskRepository.save(task);
         return taskMapper.apply(saved);
     }
 
-    private void adjustTaskPositions(Integer columnId, Integer taskId, int newPosition) {
-        List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAsc(columnId);
+    public TaskDto moveTask(Integer taskId, ChangeTaskPositionRequest request) {
+        Task task = getTaskEntityById(taskId);
 
-        for (Task t : tasks) {
-            if (!t.getId().equals(taskId)) {
-                if (t.getPosition() >= newPosition) {
-                    t.setPosition(t.getPosition() + 1);
-                    taskRepository.save(t);
-                }
-            }
+        Integer newColumnId = request.newColumnId();
+        Integer newIndex = request.newIndex();
+
+        ColumnEntity column = columnService.getColumnEntityById(newColumnId);
+        List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAsc(column.getId());
+
+        Task prev = newIndex == 0 ? null : tasks.get(newIndex - 1);
+        Task next = newIndex >= tasks.size() ? null : tasks.get(newIndex);
+
+        int newPos;
+        if (prev == null && next == null) {
+            newPos = POSITION_GAP;
+        } else if (prev == null) {
+            newPos = next.getPosition() / 2;
+        } else if (next == null) {
+            newPos = prev.getPosition() + POSITION_GAP;
+        } else {
+            newPos = (prev.getPosition() + next.getPosition()) / 2;
         }
+
+        task.setColumn(column);
+        task.setPosition(newPos);
+
+        Task saved = taskRepository.save(task);
+        return taskMapper.apply(saved);
     }
 
     public TaskDto updateTaskActive(Integer taskId, Boolean isActive) {
