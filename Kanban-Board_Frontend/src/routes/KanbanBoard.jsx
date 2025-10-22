@@ -21,27 +21,6 @@ import ColumnAddModal from "../components/Kanban/ColumnAddModal";
 import ColumnEditModal from "../components/Kanban/ColumnEditModal";
 import { useParams } from "react-router-dom";
 
-const POSITION_GAP = 65536;
-
-const calculateNewPosition = (items, index) => {
-  const prevTask = items[index - 1];
-  const nextTask = items[index + 1];
-
-  if (!prevTask && !nextTask) {
-    return POSITION_GAP;
-  } else if (!prevTask) {
-    const nextPosition = nextTask.position || 0;
-    return nextPosition / 2;
-  } else if (!nextTask) {
-    const prevPosition = prevTask.position || 0;
-    return prevPosition + POSITION_GAP;
-  } else {
-    const prevPosition = prevTask.position || 0;
-    const nextPosition = nextTask.position || 0;
-    return (prevPosition + nextPosition) / 2;
-  }
-};
-
 const KanbanBoard = () => {
   const { id: boardId } = useParams();
   const [addModalColumnId, setAddModalColumnId] = useState(null);
@@ -76,27 +55,24 @@ const KanbanBoard = () => {
             .get(`http://localhost:8080/api/columns/${col.id}/tasks`, {
               headers: { Authorization: `Bearer ${cookie.token}` },
             })
-            .then((res) => ({ columnId: col.id, tasks: res.data }))
+            .then((res) => ({
+              columnId: col.id,
+              tasks: res.data, //.sort((a, b) => a.position - b.position)
+            }))
         )
       );
 
-      const columnsWithTasks = columnsData
-        .map((col) => {
-          const taskObj = tasksRes.find((t) => t.columnId === col.id);
-
-          const sortedItems = taskObj
-            ? taskObj.tasks.sort((a, b) => a.position - b.position)
-            : [];
-
-          return {
-            id: col.id.toString(),
-            title: col.name,
-            boardId,
-            position: col.position,
-            items: sortedItems,
-          };
-        })
-        .sort((a, b) => a.position - b.position);
+      const columnsWithTasks = columnsData.map((col) => {
+        const taskObj = tasksRes.find((t) => t.columnId === col.id);
+        return {
+          id: col.id.toString(),
+          title: col.name,
+          boardId,
+          position: col.position,
+          items: taskObj ? taskObj.tasks : [],
+        };
+      });
+      // .sort((a, b) => a.position - b.position);
 
       setColumns(columnsWithTasks);
     } catch (err) {
@@ -155,7 +131,10 @@ const KanbanBoard = () => {
 
     setColumns((prev) => {
       const fromCol = prev.find((c) => c.id === activeCol);
+      if (!fromCol) return prev;
       const task = fromCol.items.find((i) => i.id === active.id);
+      if (!task) return prev;
+
       return prev.map((col) => {
         if (col.id === activeCol)
           return { ...col, items: col.items.filter((i) => i.id !== active.id) };
@@ -178,99 +157,68 @@ const KanbanBoard = () => {
       return;
     }
 
-    const overColId = findColumnId(over.id);
     const taskId = active.id;
+    const overId = over.id;
+
+    const overColId = findColumnId(overId);
 
     if (!originalColumnId || !overColId) {
       resetDragState();
       return;
     }
 
-    let newColumnsState = columns;
-
-    if (originalColumnId === overColId) {
-      if (active.id !== over.id) {
-        const activeColumn = columns.find((c) => c.id === originalColumnId);
-        const oldIndex = activeColumn.items.findIndex(
-          (i) => i.id === active.id
-        );
-        const newIndex = activeColumn.items.findIndex((i) => i.id === over.id);
-
-        if (oldIndex !== -1 && newIndex !== -1) {
-          newColumnsState = columns.map((c) =>
-            c.id === originalColumnId
-              ? { ...c, items: arrayMove(c.items, oldIndex, newIndex) }
-              : c
-          );
-          setColumns(newColumnsState);
-        }
-      } else {
-        resetDragState();
-        return;
-      }
-    } else {
-      const originalCol = columns.find((c) => c.id === originalColumnId);
-      const task = originalCol.items.find((i) => i.id === taskId);
-
-      if (!task) {
-        resetDragState();
-        return;
-      }
-
-      newColumnsState = columns.map((col) =>
-        col.id === originalColumnId
-          ? { ...col, items: col.items.filter((item) => item.id !== taskId) }
-          : col
-      );
-
-      const overCol = newColumnsState.find((c) => c.id === overColId);
-      const overIsTask = overCol.items.some((item) => item.id === over.id);
-
-      let newItems = [...overCol.items];
-      if (overIsTask) {
-        const overIndex = overCol.items.findIndex((i) => i.id === over.id);
-        newItems.splice(overIndex, 0, task);
-      } else {
-        newItems.push(task);
-      }
-
-      newColumnsState = newColumnsState.map((col) =>
-        col.id === overColId ? { ...col, items: newItems } : col
-      );
-
-      setColumns(newColumnsState);
-    }
-
-    const finalColumn = newColumnsState.find((c) => c.id === overColId);
-    const finalTaskIndex = finalColumn.items.findIndex((i) => i.id === taskId);
-
-    if (finalTaskIndex === -1) {
-      console.error("Nie znaleziono zadania po zmianie.");
+    if (active.id === over.id && originalColumnId === overColId) {
       resetDragState();
       return;
     }
 
-    const newPosition = calculateNewPosition(finalColumn.items, finalTaskIndex);
-    console.log("Obliczona pozycja: " + newPosition);
-    const taskState = finalColumn.items[finalTaskIndex];
+    const currentColumn = columns.find((c) => c.id === overColId);
+    if (!currentColumn) {
+      await fetchBoardData();
+      resetDragState();
+      return;
+    }
+
+    const oldIdx = currentColumn.items.findIndex((i) => i.id === taskId);
+
+    let newIdx = currentColumn.items.findIndex((i) => i.id === overId);
+
+    if (newIdx === -1) {
+      newIdx = currentColumn.items.length - 1;
+    }
+
+    if (oldIdx === -1) {
+      console.error(
+        "Nie znaleziono zadania w kolumnie po optymistycznym update."
+      );
+      await fetchBoardData();
+      resetDragState();
+      return;
+    }
+
+    setColumns((prev) =>
+      prev.map((c) => {
+        if (c.id === overColId) {
+          return { ...c, items: arrayMove(c.items, oldIdx, newIdx) };
+        }
+        return c;
+      })
+    );
 
     try {
-      await axios.put(
-        `http://localhost:8080/api/columns/${overColId}/tasks/${taskId}`,
+      await axios.patch(
+        `http://localhost:8080/api/columns/${originalColumnId}/tasks/${taskId}/position`,
         {
-          name: taskState.name,
-          description: taskState.description,
-          isActive: taskState.isActive,
-          dueDate: taskState.dueDate,
-          position: newPosition,
+          newColumnId: Number(overColId),
+          newIndex: newIdx,
         },
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
 
       // await fetchBoardData();
     } catch (err) {
-      console.error("Nie udało się zaktualizować zadania:", err);
-      alert("Błąd: Nie udało się zaktualizować zadania. Przywracanie stanu.");
+      console.error("Nie udało się zaktualizować pozycji zadania:", err);
+      alert("Błąd: Nie udało się zapisać nowej pozycji. Przywracanie stanu.");
       await fetchBoardData();
     }
 

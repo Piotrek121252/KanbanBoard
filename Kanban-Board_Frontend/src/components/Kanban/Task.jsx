@@ -42,8 +42,10 @@ const Task = ({ task, onEdit, onDelete, onPreview }) => {
               : "Brak deadline"}
           </span>
           <span>{isActive ? "Active" : "Inactive"}</span>
+          <div className="text-[10px] text-yellow-400 mt-1">
+            Position: {task.position ?? "N/A"}
+          </div>
         </div>
-
         <div className="flex justify-end mt-2 gap-2">
           <button
             type="button"

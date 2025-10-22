@@ -56,7 +56,7 @@ const TaskPreviewModal = ({ task, isOpen, onClose }) => {
         <div>
           <p className="text-gray-300 font-medium mb-1">Opis zadania:</p>
           <p className="text-gray-100">
-            {task.description || "No description"}
+            {task.description || "Brak opisu zadania."}
           </p>
         </div>
 

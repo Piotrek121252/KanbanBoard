@@ -87,6 +87,12 @@ public class TaskService {
         ColumnEntity column = columnService.getColumnEntityById(newColumnId);
         List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAsc(column.getId());
 
+        tasks.removeIf(t -> t.getId().equals(taskId));
+
+        if (newIndex > tasks.size()) {
+            newIndex = tasks.size();
+        }
+
         Task prev = newIndex == 0 ? null : tasks.get(newIndex - 1);
         Task next = newIndex >= tasks.size() ? null : tasks.get(newIndex);
 
