@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TbEdit } from "react-icons/tb";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
 import { FaToggleOn, FaToggleOff } from "react-icons/fa6";
 
 const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
@@ -20,14 +20,21 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
     transition,
   };
 
+  const isOverdue =
+    dueDate && new Date(dueDate).getTime() < Date.now() && isActive;
+
   return (
     <li
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-grab rounded-xl border border-gray-700 ${isActive ? "bg-gray-800" : "bg-gray-750"} p-3 active:cursor-grabbing ${
+      className={`cursor-grab rounded-xl border p-3 active:cursor-grabbing transition-colors duration-200 ${
         isDragging ? "opacity-50 shadow-lg" : ""
+      } ${
+        isActive
+          ? "bg-gray-800 border-gray-700"
+          : "bg-gray-800/50 border-gray-600"
       }`}
     >
       <div className="flex flex-col gap-1" onClick={() => onPreview?.(task)}>
@@ -38,6 +45,7 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
         >
           {name}
         </h4>
+
         <p
           className={`text-sm ${
             isActive ? "text-gray-400" : "text-red-300 line-through"
@@ -45,8 +53,18 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
         >
           {description}
         </p>
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span className={isActive ? "" : "line-through text-red-300"}>
+
+        <div className="flex justify-between text-xs mt-1 items-center">
+          <span
+            className={`flex items-center gap-1 ${
+              isActive
+                ? isOverdue
+                  ? "text-red-400 font-medium"
+                  : "text-gray-500"
+                : "text-red-300 line-through"
+            }`}
+          >
+            {isOverdue && <FaExclamationTriangle size={12} />}
             {dueDate
               ? new Date(dueDate).toLocaleString(undefined, {
                   dateStyle: "medium",
@@ -54,6 +72,7 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
                 })
               : "Brak deadline"}
           </span>
+
           <span
             className={`font-medium ${
               isActive ? "text-green-400" : "text-red-400"
@@ -85,7 +104,7 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
 
           <button
             type="button"
-            className="mt-2 text-blue-500 hover:text-blue-400 text-sm"
+            className="text-blue-500 hover:text-blue-400"
             onClick={(e) => {
               e.stopPropagation();
               onEdit(task);

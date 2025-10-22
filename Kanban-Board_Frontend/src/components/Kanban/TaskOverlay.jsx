@@ -1,11 +1,13 @@
 import { FaToggleOn, FaToggleOff } from "react-icons/fa6";
 import { TbEdit } from "react-icons/tb";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
 
 const TaskOverlay = ({ task }) => {
   if (!task) return null;
 
   const { name, description, dueDate, isActive } = task;
+  const isOverdue =
+    dueDate && new Date(dueDate).getTime() < Date.now() && isActive;
 
   return (
     <div
@@ -32,12 +34,17 @@ const TaskOverlay = ({ task }) => {
           {description}
         </p>
 
-        <div className="flex justify-between text-xs mt-1">
+        <div className="flex justify-between text-xs mt-1 items-center">
           <span
-            className={`${
-              isActive ? "text-gray-500" : "text-red-300 line-through"
+            className={`flex items-center gap-1 ${
+              isActive
+                ? isOverdue
+                  ? "text-red-400 font-medium"
+                  : "text-gray-500"
+                : "text-red-300 line-through"
             }`}
           >
+            {isOverdue && <FaExclamationTriangle size={12} />}
             {dueDate
               ? new Date(dueDate).toLocaleString(undefined, {
                   dateStyle: "medium",
