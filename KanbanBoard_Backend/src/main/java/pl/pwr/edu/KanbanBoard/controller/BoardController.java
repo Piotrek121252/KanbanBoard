@@ -5,10 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-import pl.pwr.edu.KanbanBoard.dto.board.AddMemberRequest;
-import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
-import pl.pwr.edu.KanbanBoard.dto.board.ChangeRoleRequest;
-import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
+import pl.pwr.edu.KanbanBoard.dto.board.*;
 import pl.pwr.edu.KanbanBoard.service.BoardService;
 import pl.pwr.edu.KanbanBoard.service.UserService;
 
@@ -48,6 +45,14 @@ public class BoardController {
     public ResponseEntity<Void> deleteBoard(@PathVariable Integer id) {
         boardService.deleteBoard(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<BoardDto> updateBoard(@PathVariable Integer id,
+                                                @RequestBody UpdateBoardRequest request,
+                                                @AuthenticationPrincipal User user) {
+        BoardDto updated = boardService.updateBoard(id, request, user.getUsername());
+        return ResponseEntity.ok(updated);
     }
 
     @PostMapping("/{id}/favorite")

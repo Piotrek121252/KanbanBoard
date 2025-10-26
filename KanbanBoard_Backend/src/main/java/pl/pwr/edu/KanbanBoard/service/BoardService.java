@@ -3,6 +3,7 @@ package pl.pwr.edu.KanbanBoard.service;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
 import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
+import pl.pwr.edu.KanbanBoard.dto.board.UpdateBoardRequest;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardAccessDeniedException;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.IllegalBoardRoleException;
@@ -80,6 +81,19 @@ public class BoardService {
             throw new BoardNotFoundException("Board not found with id: " + id);
         }
         boardRepository.deleteById(id);
+    }
+
+    public BoardDto updateBoard(Integer boardId, UpdateBoardRequest request, String actorUsername) {
+        Board board = getBoardEntityById(boardId);
+        UserEntity actor = userService.getUserByUsername(actorUsername);
+
+        requireRole(board, actor, BoardRole.ADMIN);
+
+        if (request.name() != null) board.setName(request.name());
+        if (request.isPublic() != null) board.setIsPublic(request.isPublic());
+
+        boardRepository.save(board);
+        return boardMapper.toDto(board, actor);
     }
 
     private void createDefaultColumns(Board board) {

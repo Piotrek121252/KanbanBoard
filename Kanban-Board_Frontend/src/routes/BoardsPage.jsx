@@ -131,6 +131,7 @@ const BoardsPage = () => {
                     board={board}
                     onDelete={handleDeleteBoard}
                     onToggleFavorite={handleToggleFavorite}
+                    onEdit={fetchBoards}
                   />
                 ))}
               </div>
@@ -147,6 +148,7 @@ const BoardsPage = () => {
                     board={board}
                     onDelete={handleDeleteBoard}
                     onToggleFavorite={handleToggleFavorite}
+                    onEdit={fetchBoards}
                   />
                 ))}
               </div>

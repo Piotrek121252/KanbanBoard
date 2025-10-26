@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTrash, FaStar, FaRegStar, FaEdit } from "react-icons/fa";
 import Modal from "../Modal";
-import BoardEditForm from "./BoardEditForm";
+import BoardEditModal from "./BoardEditModal";
 
 const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
   const navigate = useNavigate();
@@ -58,17 +58,12 @@ const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
       </div>
 
       {isEditOpen && (
-        <Modal
+        <BoardEditModal
+          board={board}
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
-          title={`Edytuj tablicę: ${board.name}`}
-        >
-          <BoardEditForm
-            board={board}
-            onClose={() => setIsEditOpen(false)}
-            onEdit={onEdit}
-          />
-        </Modal>
+          onEdit={onEdit}
+        />
       )}
     </>
   );
