@@ -7,35 +7,43 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.config.JWTGenerator;
+import pl.pwr.edu.KanbanBoard.dto.UserDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.AuthResponseDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.LoginRequestDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.RegisterRequestDto;
 import pl.pwr.edu.KanbanBoard.exceptions.BoardNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.Board;
+import pl.pwr.edu.KanbanBoard.model.BoardMember;
 import pl.pwr.edu.KanbanBoard.model.Role;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;
+import pl.pwr.edu.KanbanBoard.repository.BoardMemberRepository;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
 import pl.pwr.edu.KanbanBoard.repository.RoleRepository;
 import pl.pwr.edu.KanbanBoard.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final BoardRepository boardRepository;
+    private final BoardMemberRepository boardMemberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JWTGenerator jwtGenerator;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository, BoardRepository boardRepository,
-                       PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+                       BoardMemberRepository boardMemberRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
                        JWTGenerator jwtGenerator) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.boardRepository = boardRepository;
+        this.boardMemberRepository = boardMemberRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtGenerator = jwtGenerator;
@@ -71,9 +79,14 @@ public class UserService {
         return "Użytkownik został utworzony.";
     }
 
-    public UserEntity getUserByUsername(String username) {
+    UserEntity getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + username));
+    }
+
+    UserEntity getUserByUserId(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika z id: " + userId));
     }
 
     public void addFavoriteBoard(String username, Integer boardId) {
@@ -94,6 +107,25 @@ public class UserService {
 
         user.getFavoriteBoards().remove(board);
         userRepository.save(user);
+    }
+
+    public List<UserDto> getAllUsers(Integer excludeBoardId) {
+        List<UserEntity> users = userRepository.findAll();
+
+        if (excludeBoardId != null) {
+            List<BoardMember> boardMembers = boardMemberRepository.findByBoardId(excludeBoardId);
+            Set<Integer> memberId = boardMembers.stream()
+                    .map(boardMember -> boardMember.getUser().getId())
+                    .collect(Collectors.toSet());
+
+            users = users.stream()
+                    .filter(user -> !memberId.contains(user.getId()))
+                    .toList();
+        }
+
+        return users.stream()
+                .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail()))
+                .collect(Collectors.toList());
     }
 
     private void validateRegisterData(RegisterRequestDto request) {

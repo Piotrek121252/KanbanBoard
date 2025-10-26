@@ -32,9 +32,6 @@ public class UserEntity {
     @Column(name = "signup_date",nullable = false)
     private LocalDateTime signupDate;
 
-    @ManyToMany(mappedBy = "members")
-    private List<Board> boards;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
@@ -50,4 +47,7 @@ public class UserEntity {
             inverseJoinColumns = @JoinColumn(name = "board_id")
     )
     private List<Board> favoriteBoards = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardMember> boardMembership = new ArrayList<>();
 }

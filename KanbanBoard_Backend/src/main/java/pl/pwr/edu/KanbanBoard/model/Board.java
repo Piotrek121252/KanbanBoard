@@ -26,10 +26,8 @@ public class Board {
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic;
 
-    @ManyToMany
-    @JoinTable(name = "board_members", joinColumns = @JoinColumn(name = "board_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<UserEntity> members = new ArrayList<>();
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardMember> boardMembers = new ArrayList<>();
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ColumnEntity> columns = new ArrayList<>();
