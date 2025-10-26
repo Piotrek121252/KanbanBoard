@@ -42,11 +42,4 @@ public class UserEntity {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
-
-    // Zastanowić się czy nie powiniem robić tego podczas tworzenia użytkownika
-    @PrePersist
-    protected void onCreate() {
-        this.signupDate = LocalDateTime.now();
-    }
-
 }

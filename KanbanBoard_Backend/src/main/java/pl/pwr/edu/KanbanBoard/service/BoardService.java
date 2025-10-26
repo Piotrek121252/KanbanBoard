@@ -11,6 +11,7 @@ import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
 import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;
 import pl.pwr.edu.KanbanBoard.service.mapper.BoardMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,7 @@ public class BoardService {
         Board board = new Board();
         board.setName(createBoardDto.name());
         board.setIsPublic(createBoardDto.isPublic());
+        board.setCreatedDate(LocalDateTime.now());
 
         UserEntity currentUser = userService.getUserByUsername(username);
         board.getMembers().add(currentUser);

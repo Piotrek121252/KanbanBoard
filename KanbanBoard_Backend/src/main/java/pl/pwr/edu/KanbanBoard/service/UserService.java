@@ -15,6 +15,7 @@ import pl.pwr.edu.KanbanBoard.model.UserEntity;
 import pl.pwr.edu.KanbanBoard.repository.RoleRepository;
 import pl.pwr.edu.KanbanBoard.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 @Service
@@ -55,6 +56,7 @@ public class UserService {
         user.setUsername(request.username());
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
+        user.setSignupDate(LocalDateTime.now());
 
         Role role = roleRepository.findByName("USER")
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono domyślnej roli USER"));
