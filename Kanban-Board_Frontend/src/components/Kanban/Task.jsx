@@ -39,17 +39,15 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
     >
       <div className="flex flex-col gap-1" onClick={() => onPreview?.(task)}>
         <h4
-          className={`font-semibold ${
-            isActive ? "text-gray-200" : "text-red-400 line-through"
+          className={`font-semibold text-gray-200 ${
+            !isActive ? "opacity-50 line-through" : ""
           }`}
         >
           {name}
         </h4>
 
         <p
-          className={`text-sm ${
-            isActive ? "text-gray-400" : "text-red-300 line-through"
-          }`}
+          className={`text-sm text-gray-400 ${!isActive ? "opacity-50 line-through" : ""}`}
         >
           {description}
         </p>
@@ -61,7 +59,7 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
                 ? isOverdue
                   ? "text-red-400 font-medium"
                   : "text-gray-500"
-                : "text-red-300 line-through"
+                : "text-gray-500 opacity-50 line-through"
             }`}
           >
             {isOverdue && <FaExclamationTriangle size={12} />}

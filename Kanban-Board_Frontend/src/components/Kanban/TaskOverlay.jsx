@@ -20,7 +20,7 @@ const TaskOverlay = ({ task }) => {
       <div className="flex flex-col gap-1">
         <h4
           className={`font-semibold ${
-            isActive ? "text-gray-200" : "text-red-400 line-through"
+            !isActive ? "opacity-50 line-through" : ""
           }`}
         >
           {name}
@@ -28,7 +28,7 @@ const TaskOverlay = ({ task }) => {
 
         <p
           className={`text-sm line-clamp-2 ${
-            isActive ? "text-gray-400" : "text-red-300 line-through"
+            !isActive ? "opacity-50 line-through" : ""
           }`}
         >
           {description}
@@ -41,7 +41,7 @@ const TaskOverlay = ({ task }) => {
                 ? isOverdue
                   ? "text-red-400 font-medium"
                   : "text-gray-500"
-                : "text-red-300 line-through"
+                : "text-gray-500 opacity-50 line-through"
             }`}
           >
             {isOverdue && <FaExclamationTriangle size={12} />}

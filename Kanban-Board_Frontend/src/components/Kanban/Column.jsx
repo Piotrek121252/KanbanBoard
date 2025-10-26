@@ -27,36 +27,46 @@ const Column = ({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col rounded-xl border border-gray-700 p-3"
-      style={{
-        backgroundColor: color || "#6b7280", // fallback to default gray
-      }}
+      className="flex flex-col rounded-xl border border-gray-700 bg-gray-800/70"
     >
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold text-gray-200">{title}</h3>
+      <div
+        className="flex justify-between items-center px-3 py-2 rounded-t-xl"
+        style={{ backgroundColor: color }}
+      >
+        <h3 className="text-lg font-semibold text-gray-100 truncate">
+          {title}
+        </h3>
+
         <div className="flex items-center gap-2">
-          <span className="text-xs bg-gray-700 text-gray-100 rounded-full px-2 py-0.5">
-            {items.length}
+          <span className="text-xs bg-gray-900/30 text-gray-100 rounded-full px-2 py-0.5">
+            {items.filter((task) => task.isActive).length}
           </span>
+
           <button
             onClick={() => onMoveLeft && onMoveLeft(id, -1)}
             disabled={isFirst}
-            className={`text-gray-400 hover:text-white transition ${isFirst ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`text-gray-100 hover:text-white transition ${
+              isFirst ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             title="Przesuń w lewo"
           >
             <FaArrowLeft size={14} />
           </button>
+
           <button
             onClick={() => onMoveRight && onMoveRight(id, 1)}
             disabled={isLast}
-            className={`text-gray-400 hover:text-white transition ${isLast ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`text-gray-100 hover:text-white transition ${
+              isLast ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             title="Przesuń w prawo"
           >
             <FaArrowRight size={14} />
           </button>
+
           <button
             onClick={() => onEdit && onEdit({ id, title })}
-            className="text-gray-400 hover:text-white transition"
+            className="text-gray-100 hover:text-white transition"
             title="Edytuj kolumnę"
           >
             <FaCog size={18} />
@@ -64,29 +74,31 @@ const Column = ({
         </div>
       </div>
 
-      <SortableContext
-        items={items.map((i) => i.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <ul className="flex flex-col gap-2">
-          {items.map((task) => (
-            <Task
-              key={task.id}
-              task={task}
-              onEdit={() => onTaskEdit(task)}
-              onDelete={onTaskDelete}
-              onPreview={onTaskPreview}
-              onToggleActive={onTaskToggleActive}
-            />
-          ))}
-        </ul>
-      </SortableContext>
+      <div className="p-3">
+        <SortableContext
+          items={items.map((i) => i.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <ul className="flex flex-col gap-2">
+            {items.map((task) => (
+              <Task
+                key={task.id}
+                task={task}
+                onEdit={() => onTaskEdit(task)}
+                onDelete={onTaskDelete}
+                onPreview={onTaskPreview}
+                onToggleActive={onTaskToggleActive}
+              />
+            ))}
+          </ul>
+        </SortableContext>
 
-      {items.length === 0 && (
-        <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-gray-600 bg-gray-800/30">
-          <p className="text-sm text-gray-400">Dodaj lub przenieś zadania</p>
-        </div>
-      )}
+        {items.length === 0 && (
+          <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-gray-600 bg-gray-800/30">
+            <p className="text-sm text-gray-400">Dodaj lub przenieś zadania</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
