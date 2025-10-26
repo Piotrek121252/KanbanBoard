@@ -6,6 +6,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardAccessDeniedException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.ColumnNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.IllegalBoardRoleException;
 
 import java.util.Date;
 
@@ -41,6 +45,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
+    @ExceptionHandler(IllegalBoardRoleException.class)
+    public ResponseEntity<ErrorObject> handleIllegalBoardRole(IllegalBoardRoleException ex) {
+        ErrorObject errorObject = new ErrorObject();
+        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        errorObject.setMessage(ex.getMessage());
+        errorObject.setTimestamp(new Date());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorObject);
+    }
+
+    @ExceptionHandler(BoardAccessDeniedException.class)
+    public ResponseEntity<ErrorObject> handleBoardAccessDenied(BoardAccessDeniedException ex) {
+        ErrorObject errorObject = new ErrorObject();
+        errorObject.setStatusCode(HttpStatus.FORBIDDEN.value());
+        errorObject.setMessage(ex.getMessage());
+        errorObject.setTimestamp(new Date());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorObject);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorObject> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
         ErrorObject errorObject = new ErrorObject();
@@ -58,5 +80,4 @@ public class GlobalExceptionHandler {
         errorObject.setTimestamp(new Date());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorObject);
     }
-
 }

@@ -11,7 +11,7 @@ import pl.pwr.edu.KanbanBoard.dto.UserDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.AuthResponseDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.LoginRequestDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.RegisterRequestDto;
-import pl.pwr.edu.KanbanBoard.exceptions.BoardNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.BoardMember;
 import pl.pwr.edu.KanbanBoard.model.Role;

@@ -61,30 +61,4 @@ public class BoardController {
         userService.removeFavoriteBoard(user.getUsername(), id);
         return ResponseEntity.noContent().build();
     }
-
-    @PostMapping("/{boardId}/members")
-    public ResponseEntity<Void> addMember(@PathVariable Integer boardId,
-                                          @RequestBody AddMemberRequest request,
-                                          @AuthenticationPrincipal User user) {
-        boardService.addMember(boardId, request.userId(), request.role(), user.getUsername());
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{boardId}/members/{userId}")
-    public ResponseEntity<Void> removeMember(@PathVariable Integer boardId,
-                                             @PathVariable Integer userId,
-                                             @AuthenticationPrincipal User user) {
-        boardService.removeMember(boardId, userId, user.getUsername());
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{boardId}/members/{userId}/role")
-    public ResponseEntity<Void> changeMemberRole(@PathVariable Integer boardId,
-                                                 @PathVariable Integer userId,
-                                                 @RequestBody ChangeRoleRequest request,
-                                                 @AuthenticationPrincipal User user) {
-        boardService.changeMemberRole(boardId, userId, request.role(), user.getUsername());
-        return ResponseEntity.ok().build();
-    }
-
 }

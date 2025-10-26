@@ -1,4 +1,4 @@
-package pl.pwr.edu.KanbanBoard.exceptions;
+package pl.pwr.edu.KanbanBoard.exceptions.customExceptions;
 
 public class TaskNotFoundException extends RuntimeException {
     public TaskNotFoundException(Integer id) {

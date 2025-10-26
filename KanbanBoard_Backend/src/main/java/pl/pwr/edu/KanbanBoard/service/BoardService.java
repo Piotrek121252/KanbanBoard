@@ -1,10 +1,11 @@
 package pl.pwr.edu.KanbanBoard.service;
 
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
 import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
-import pl.pwr.edu.KanbanBoard.exceptions.BoardNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardAccessDeniedException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.IllegalBoardRoleException;
 import pl.pwr.edu.KanbanBoard.model.*;
 import pl.pwr.edu.KanbanBoard.repository.BoardMemberRepository;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
@@ -90,12 +91,14 @@ public class BoardService {
         columnRepository.saveAll(defaultColumns);
     }
 
-    public void addMember(Integer boardId, Integer userId, BoardRole role, String actorUsername) {
+    public void addMember(Integer boardId, Integer userId, String roleName, String actorUsername) {
         Board board = getBoardEntityById(boardId);
         UserEntity actor = userService.getUserByUsername(actorUsername);
         requireRole(board, actor, BoardRole.ADMIN);
 
         UserEntity userToAdd = userService.getUserByUserId(userId);
+
+        BoardRole role = parseBoardRole(roleName);
 
         if (boardMemberRepository.existsByBoardAndUser(board, userToAdd)) {
             throw new RuntimeException("Użytkownik już jest członkiem tej tablicy");
@@ -119,13 +122,15 @@ public class BoardService {
         boardMemberRepository.delete(member);
     }
 
-    public void changeMemberRole(Integer boardId, Integer userId, BoardRole newRole, String actorUsername) {
+    public void changeMemberRole(Integer boardId, Integer userId, String newRoleName, String actorUsername) {
         Board board = getBoardEntityById(boardId);
         UserEntity actor = userService.getUserByUsername(actorUsername);
         requireRole(board, actor, BoardRole.ADMIN);
 
         BoardMember member = boardMemberRepository.findByBoardAndUser(board, userService.getUserByUserId(userId))
                 .orElseThrow(() -> new RuntimeException("Użytkownik nie jest członkiem tej tablicy"));
+
+        BoardRole newRole = parseBoardRole(newRoleName);
 
         member.setRole(newRole);
         boardMemberRepository.save(member);
@@ -134,13 +139,21 @@ public class BoardService {
 
     public BoardMember getMembership(Board board, UserEntity user) {
         return boardMemberRepository.findByBoardAndUser(board, user)
-                .orElseThrow(() -> new RuntimeException("Użytkownik nie jest członkiem tej tablicy"));
+                .orElseThrow(() -> new BoardAccessDeniedException("Użytkownik nie jest członkiem tej tablicy"));
     }
 
     public void requireRole(Board board, UserEntity user, BoardRole minimumRole) {
         BoardMember member = getMembership(board, user);
         if (member.getRole().ordinal() > minimumRole.ordinal()) {
-            throw new RuntimeException("Użytkownik nie odpowiednich uprawnień do wykonania tej czynności");
+            throw new BoardAccessDeniedException("Użytkownik nie ma odpowiednich uprawnień do wykonania tej czynności");
+        }
+    }
+
+    BoardRole parseBoardRole(String roleName) {
+        try {
+            return BoardRole.valueOf(roleName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalBoardRoleException("Podana rola jest niewłaściwa: " + roleName);
         }
     }
 }

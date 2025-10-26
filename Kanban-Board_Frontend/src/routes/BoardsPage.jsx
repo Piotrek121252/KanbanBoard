@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import axios from "axios";
 import Modal from "../components/Modal";
-import BoardCard from "../components/BoardCard";
+import BoardCard from "../components/BoardsPage/BoardCard";
 
 const BoardsPage = () => {
   const [boards, setBoards] = useState([]);

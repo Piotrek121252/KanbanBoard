@@ -2,8 +2,8 @@ package pl.pwr.edu.KanbanBoard.service;
 
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.comment.CommentDto;
-import pl.pwr.edu.KanbanBoard.exceptions.CommentNotFoundException;
-import pl.pwr.edu.KanbanBoard.exceptions.UnauthorizedCommentDeleteException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.CommentNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.UnauthorizedCommentDeleteException;
 import pl.pwr.edu.KanbanBoard.model.Comment;
 import pl.pwr.edu.KanbanBoard.model.Task;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;

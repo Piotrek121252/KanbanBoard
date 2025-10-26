@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.task.ChangeTaskPositionRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
-import pl.pwr.edu.KanbanBoard.exceptions.TaskNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.TaskNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.model.Task;
 import pl.pwr.edu.KanbanBoard.repository.TaskRepository;

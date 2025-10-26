@@ -3,7 +3,7 @@ package pl.pwr.edu.KanbanBoard.service;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.column.ColumnDto;
 import pl.pwr.edu.KanbanBoard.dto.column.CreateColumnRequest;
-import pl.pwr.edu.KanbanBoard.exceptions.ColumnNotFoundException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.ColumnNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;

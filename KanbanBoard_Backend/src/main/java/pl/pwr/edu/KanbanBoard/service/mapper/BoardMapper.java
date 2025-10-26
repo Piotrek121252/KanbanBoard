@@ -20,6 +20,7 @@ public class BoardMapper {
                 .map(member -> new BoardMemberDto(
                         member.getUser().getId(),
                         member.getUser().getUsername(),
+                        member.getUser().getEmail(),
                         member.getRole()))
                 .toList();
 
