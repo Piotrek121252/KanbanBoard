@@ -8,6 +8,7 @@ public record BoardDto(
         String name,
         Boolean isPublic,
         LocalDateTime createdDate,
-        List<Integer> memberIds
+        List<Integer> memberIds,
+        Boolean isFavorite
 ) {}
 

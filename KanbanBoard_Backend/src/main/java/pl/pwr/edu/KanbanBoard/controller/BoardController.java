@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
 import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
 import pl.pwr.edu.KanbanBoard.service.BoardService;
+import pl.pwr.edu.KanbanBoard.service.UserService;
 
 import java.util.List;
 
@@ -16,21 +17,24 @@ import java.util.List;
 public class BoardController {
 
     private final BoardService boardService;
+    private final UserService userService;
 
     @Autowired
-    public BoardController(BoardService boardService) {
+    public BoardController(BoardService boardService, UserService userService) {
         this.boardService = boardService;
+        this.userService = userService;
     }
 
     @GetMapping
-    public ResponseEntity<List<BoardDto>> getAllBoards()
+    public ResponseEntity<List<BoardDto>> getAllBoards(@AuthenticationPrincipal User user)
     {
-        return ResponseEntity.ok(boardService.getAllBoards());
+        return ResponseEntity.ok(boardService.getAllBoards(user.getUsername()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BoardDto> getBoardById(@PathVariable Integer id) {
-        return ResponseEntity.ok(boardService.getBoardById(id));
+    public ResponseEntity<BoardDto> getBoardById(@PathVariable Integer id,
+                                                 @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(boardService.getBoardById(id, user.getUsername()));
     }
 
     @PostMapping
@@ -41,6 +45,18 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBoard(@PathVariable Integer id) {
         boardService.deleteBoard(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/favorite")
+    public ResponseEntity<Void> addFavorite(@PathVariable Integer id, @AuthenticationPrincipal User user) {
+        userService.addFavoriteBoard(user.getUsername(), id);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/favorite")
+    public ResponseEntity<Void> removeFavorite(@PathVariable Integer id, @AuthenticationPrincipal User user) {
+        userService.removeFavoriteBoard(user.getUsername(), id);
         return ResponseEntity.noContent().build();
     }
 }

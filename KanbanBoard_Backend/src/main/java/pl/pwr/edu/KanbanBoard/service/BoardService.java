@@ -1,5 +1,6 @@
 package pl.pwr.edu.KanbanBoard.service;
 
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
 import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
@@ -31,37 +32,42 @@ public class BoardService {
         this.boardMapper = boardMapper;
     }
 
-    public List<BoardDto> getAllBoards() {
+    public List<BoardDto> getAllBoards(String username) {
+        UserEntity user = userService.getUserByUsername(username);
+
         return boardRepository.findAll().stream()
-                .map(boardMapper)
+                .map(board -> boardMapper.toDto(board, user))
                 .collect(Collectors.toList());
     }
 
-    public BoardDto getBoardById(Integer id) {
+    public BoardDto getBoardById(Integer id, String username) {
+        UserEntity user = userService.getUserByUsername(username);
+
         Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new BoardNotFoundException("Board not found with id: " + id));
-        return boardMapper.apply(board);
+                .orElseThrow(() -> new BoardNotFoundException("Nie znaleziono tablicy z id: " + id));
+
+        return boardMapper.toDto(board, user);
     }
 
     public Board getBoardEntityById(Integer id) {
         return boardRepository.findById(id)
-                .orElseThrow(() -> new BoardNotFoundException("Board not found with id: " + id));
+                .orElseThrow(() -> new BoardNotFoundException("Nie znaleziono tablicy z id: " + id));
     }
 
     public BoardDto createBoard(CreateBoardRequest createBoardDto, String username) {
+        UserEntity currentUser = userService.getUserByUsername(username);
+
         Board board = new Board();
         board.setName(createBoardDto.name());
         board.setIsPublic(createBoardDto.isPublic());
+        board.getMembers().add(currentUser);
         board.setCreatedDate(LocalDateTime.now());
 
-        UserEntity currentUser = userService.getUserByUsername(username);
-        board.getMembers().add(currentUser);
-
         Board saved = boardRepository.save(board);
-        // TODO kolejność do zmiany?
+
         createDefaultColumns(saved);
 
-        return boardMapper.apply(saved);
+        return boardMapper.toDto(saved, currentUser);
     }
 
     public void deleteBoard(Integer id) {

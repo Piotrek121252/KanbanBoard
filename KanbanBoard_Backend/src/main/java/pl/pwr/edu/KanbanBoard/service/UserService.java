@@ -10,8 +10,11 @@ import pl.pwr.edu.KanbanBoard.config.JWTGenerator;
 import pl.pwr.edu.KanbanBoard.dto.authentication.AuthResponseDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.LoginRequestDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.RegisterRequestDto;
+import pl.pwr.edu.KanbanBoard.exceptions.BoardNotFoundException;
+import pl.pwr.edu.KanbanBoard.model.Board;
 import pl.pwr.edu.KanbanBoard.model.Role;
 import pl.pwr.edu.KanbanBoard.model.UserEntity;
+import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
 import pl.pwr.edu.KanbanBoard.repository.RoleRepository;
 import pl.pwr.edu.KanbanBoard.repository.UserRepository;
 
@@ -22,15 +25,17 @@ import java.util.Collections;
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JWTGenerator jwtGenerator;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, BoardRepository boardRepository,
                        PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
                        JWTGenerator jwtGenerator) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.boardRepository = boardRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtGenerator = jwtGenerator;
@@ -69,6 +74,26 @@ public class UserService {
     public UserEntity getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + username));
+    }
+
+    public void addFavoriteBoard(String username, Integer boardId) {
+        UserEntity user = getUserByUsername(username);
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BoardNotFoundException("Nie znaleziono tablicy"));
+
+        if (!user.getFavoriteBoards().contains(board)) {
+            user.getFavoriteBoards().add(board);
+            userRepository.save(user);
+        }
+    }
+
+    public void removeFavoriteBoard(String username, Integer boardId) {
+        UserEntity user = getUserByUsername(username);
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BoardNotFoundException("Nie znaleziono tablicy"));
+
+        user.getFavoriteBoards().remove(board);
+        userRepository.save(user);
     }
 
     private void validateRegisterData(RegisterRequestDto request) {

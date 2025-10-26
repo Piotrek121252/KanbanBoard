@@ -9,15 +9,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class BoardMapper implements Function<Board, BoardDto> {
-    @Override
-    public BoardDto apply(Board board) {
+public class BoardMapper {
+    public BoardDto toDto(Board board, UserEntity user) {
+        boolean isFavorite = user != null && user.getFavoriteBoards().contains(board);
+
         return new BoardDto(
                 board.getId(),
                 board.getName(),
                 board.getIsPublic(),
                 board.getCreatedDate(),
-                board.getMembers().stream().map(UserEntity::getId).collect(Collectors.toList())
+                board.getMembers().stream()
+                        .map(UserEntity::getId)
+                        .collect(Collectors.toList()),
+                isFavorite
         );
     }
 }
