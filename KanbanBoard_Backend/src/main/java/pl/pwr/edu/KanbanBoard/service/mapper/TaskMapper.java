@@ -21,7 +21,8 @@ public class TaskMapper implements Function<Task, TaskDto> {
                 task.getDescription(),
                 task.getIsActive(),
                 task.getCreatedDate(),
-                task.getDueDate()
+                task.getDueDate(),
+                task.getPriority()
         );
     }
 

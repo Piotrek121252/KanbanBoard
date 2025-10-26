@@ -1,5 +1,7 @@
 package pl.pwr.edu.KanbanBoard.dto.task;
 
+import pl.pwr.edu.KanbanBoard.model.TaskPriority;
+
 import java.time.LocalDateTime;
 
 public record TaskDto(
@@ -10,5 +12,6 @@ public record TaskDto(
         String description,
         Boolean isActive,
         LocalDateTime createdDate,
-        LocalDateTime dueDate
+        LocalDateTime dueDate,
+        TaskPriority priority
 ) {}

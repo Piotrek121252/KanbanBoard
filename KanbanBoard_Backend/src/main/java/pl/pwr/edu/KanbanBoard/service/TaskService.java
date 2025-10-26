@@ -7,6 +7,7 @@ import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.TaskNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
 import pl.pwr.edu.KanbanBoard.model.Task;
+import pl.pwr.edu.KanbanBoard.model.TaskPriority;
 import pl.pwr.edu.KanbanBoard.repository.TaskRepository;
 import pl.pwr.edu.KanbanBoard.service.mapper.TaskMapper;
 
@@ -44,6 +45,8 @@ public class TaskService {
         task.setCreatedDate(LocalDateTime.now());
         task.setDueDate(request.dueDate());
 
+        task.setPriority(request.priority() != null ? request.priority() : TaskPriority.MEDIUM);
+
         List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAsc(column.getId());
         int newPosition = request.position() != null
                 ? request.position()
@@ -57,13 +60,13 @@ public class TaskService {
     public TaskDto updateTask(Integer columnId, Integer taskId, CreateTaskRequest request) {
         Task task = getTaskEntityById(taskId);
 
-        if (request.name() != null) task.setName(request.name());
-        if (request.description() != null) task.setDescription(request.description());
-        if (request.dueDate() != null) task.setDueDate(request.dueDate());
-        if (request.isActive() != null) task.setIsActive(request.isActive());
+        task.setName(request.name() != null ? request.name() : task.getName());
+        task.setDescription(request.description() != null ? request.description() : task.getDescription());
+        task.setDueDate(request.dueDate() != null ? request.dueDate() : task.getDueDate());
+        task.setIsActive(request.isActive() != null ? request.isActive() : task.getIsActive());
+        task.setPriority(request.priority() != null ? request.priority() : task.getPriority());
 
         ColumnEntity currentColumn = task.getColumn();
-
         if (!columnId.equals(currentColumn.getId())) {
             ColumnEntity newColumn = columnService.getColumnEntityById(columnId);
             task.setColumn(newColumn);

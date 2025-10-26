@@ -3,9 +3,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { TbEdit } from "react-icons/tb";
 import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
 import { FaToggleOn, FaToggleOff } from "react-icons/fa6";
+import priorityMap from "../../constants/priorityMap";
 
 const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
-  const { id, name, description, dueDate, isActive } = task;
+  const { id, name, description, dueDate, isActive, priority } = task;
   const {
     attributes,
     listeners,
@@ -22,6 +23,11 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
 
   const isOverdue =
     dueDate && new Date(dueDate).getTime() < Date.now() && isActive;
+
+  const taskPriority = priorityMap[priority] || {
+    color: "bg-gray-500",
+    text: "Unknown",
+  };
 
   return (
     <li
@@ -45,9 +51,10 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
         >
           {name}
         </h4>
-
         <p
-          className={`text-sm text-gray-400 ${!isActive ? "opacity-50 line-through" : ""}`}
+          className={`text-sm text-gray-400 ${
+            !isActive ? "opacity-50 line-through" : ""
+          }`}
         >
           {description}
         </p>
@@ -80,49 +87,59 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
           </span>
         </div>
 
-        <div className="flex justify-end mt-2 gap-2">
-          <div className="text-[10px] text-yellow-400 mt-1">
-            Position: {task.position ?? "N/A"}
+        <div className="flex justify-between mt-2 items-center">
+          <span
+            className={`inline-block px-2 py-1 text-xs font-semibold rounded ${taskPriority.color} text-white`}
+            title={`Priority: ${taskPriority.text}`}
+          >
+            {taskPriority.text}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <div className="text-[10px] text-yellow-400 mt-1">
+              Position: {task.position ?? "N/A"}
+            </div>
+
+            <button
+              type="button"
+              className={`transition ${
+                isActive
+                  ? "text-green-400 hover:text-green-300"
+                  : "text-red-400 hover:text-red-300"
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleActive?.(task);
+              }}
+              title={isActive ? "Dezaktywuj zadanie" : "Aktywuj zadanie"}
+            >
+              {isActive ? <FaToggleOn size={20} /> : <FaToggleOff size={20} />}
+            </button>
+
+            <button
+              type="button"
+              className="text-blue-500 hover:text-blue-400"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(task);
+              }}
+              title="Edytuj zadanie"
+            >
+              <TbEdit size={20} />
+            </button>
+
+            <button
+              type="button"
+              className="text-red-500 hover:text-red-400"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(task.id, task.columnId);
+              }}
+              title="Usuń zadanie"
+            >
+              <FaTrash size={16} />
+            </button>
           </div>
-          <button
-            type="button"
-            className={`transition ${
-              isActive
-                ? "text-green-400 hover:text-green-300"
-                : "text-red-400 hover:text-red-300"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleActive?.(task);
-            }}
-            title={isActive ? "Dezaktywuj zadanie" : "Aktywuj zadanie"}
-          >
-            {isActive ? <FaToggleOn size={20} /> : <FaToggleOff size={20} />}
-          </button>
-
-          <button
-            type="button"
-            className="text-blue-500 hover:text-blue-400"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(task);
-            }}
-            title="Edytuj zadanie"
-          >
-            <TbEdit size={20} />
-          </button>
-
-          <button
-            type="button"
-            className="text-red-500 hover:text-red-400"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(task.id, task.columnId);
-            }}
-            title="Usuń zadanie"
-          >
-            <FaTrash size={16} />
-          </button>
         </div>
       </div>
     </li>

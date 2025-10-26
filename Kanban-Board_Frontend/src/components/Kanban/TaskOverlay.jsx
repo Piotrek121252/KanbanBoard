@@ -1,13 +1,19 @@
 import { FaToggleOn, FaToggleOff } from "react-icons/fa6";
 import { TbEdit } from "react-icons/tb";
 import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
+import priorityMap from "../../constants/priorityMap";
 
 const TaskOverlay = ({ task }) => {
   if (!task) return null;
 
-  const { name, description, dueDate, isActive } = task;
+  const { name, description, dueDate, isActive, priority } = task;
   const isOverdue =
     dueDate && new Date(dueDate).getTime() < Date.now() && isActive;
+
+  const taskPriority = priorityMap[priority] || {
+    color: "bg-gray-500",
+    text: "Unknown",
+  };
 
   return (
     <div
@@ -27,7 +33,7 @@ const TaskOverlay = ({ task }) => {
         </h4>
 
         <p
-          className={`text-sm line-clamp-2 ${
+          className={`text-sm text-gray-400 ${
             !isActive ? "opacity-50 line-through" : ""
           }`}
         >
@@ -62,14 +68,23 @@ const TaskOverlay = ({ task }) => {
           </span>
         </div>
 
-        <div className="flex justify-end mt-2 gap-2 opacity-60">
-          {isActive ? (
-            <FaToggleOn size={18} className="text-green-400" />
-          ) : (
-            <FaToggleOff size={18} className="text-red-400" />
-          )}
-          <TbEdit size={18} className="text-blue-400" />
-          <FaTrash size={14} className="text-red-400" />
+        <div className="flex justify-between mt-2 items-center opacity-60">
+          <span
+            className={`inline-block px-2 py-1 text-xs font-semibold rounded ${taskPriority.color} text-white`}
+            title={`Priority: ${taskPriority.text}`}
+          >
+            {taskPriority.text}
+          </span>
+
+          <div className="flex items-center gap-2">
+            {isActive ? (
+              <FaToggleOn size={18} className="text-green-400" />
+            ) : (
+              <FaToggleOff size={18} className="text-red-400" />
+            )}
+            <TbEdit size={18} className="text-blue-400" />
+            <FaTrash size={14} className="text-red-400" />
+          </div>
         </div>
       </div>
     </div>

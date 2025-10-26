@@ -44,6 +44,10 @@ public class Task {
     @Column(name = "due_date")
     private LocalDateTime dueDate;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority = TaskPriority.MEDIUM;
+
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 }

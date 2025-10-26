@@ -5,7 +5,7 @@ import { FaUsers, FaInfoCircle } from "react-icons/fa";
 import Modal from "../Modal";
 
 const BoardEditModal = ({ board, isOpen, onClose, onEdit }) => {
-  const [activeTab, setActiveTab] = useState("info"); // "info" or "members"
+  const [activeTab, setActiveTab] = useState("info");
   const [name, setName] = useState(board.name);
   const [isPublic, setIsPublic] = useState(board.isPublic);
   const [saving, setSaving] = useState(false);
