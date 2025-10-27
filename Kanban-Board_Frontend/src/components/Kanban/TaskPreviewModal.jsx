@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "../Modal";
 import { useCookies } from "react-cookie";
 import axios from "axios";
+import priorityMap from "../../constants/priorityMap";
 
 const TaskPreviewModal = ({ task, isOpen, onClose }) => {
   const [cookie] = useCookies(["token"]);
@@ -50,24 +51,42 @@ const TaskPreviewModal = ({ task, isOpen, onClose }) => {
 
   if (!task) return null;
 
+  const priority = priorityMap[task.priority] || {
+    text: "Brak",
+    color: "bg-gray-600",
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`${task.name}`}>
       <div className="flex flex-col gap-4">
         <div>
           <p className="text-gray-300 font-medium mb-1">Opis zadania:</p>
-          <p className="text-gray-100">
+          <p className="text-gray-400 font-light leading-relaxed">
             {task.description || "Brak opisu zadania."}
           </p>
         </div>
 
-        <div className="flex justify-between text-sm text-gray-400">
-          <span>
-            Deadline:{" "}
-            {task.dueDate
-              ? new Date(task.dueDate).toLocaleString()
-              : "Brak deadline"}
+        <div className="text-sm text-gray-400">
+          Deadline:{" "}
+          {task.dueDate
+            ? new Date(task.dueDate).toLocaleString()
+            : "Brak deadline"}
+        </div>
+
+        <div className="flex justify-between items-center">
+          <span
+            className={`px-2 py-1 rounded-md text-xs font-semibol text-white ${priority.color}`}
+          >
+            {priority.text}
           </span>
-          <span>Status: {task.isActive ? "Aktywny" : "Nieaktywny"}</span>
+
+          <span
+            className={`text-xs font-semibold ${
+              task.isActive ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {task.isActive ? "Active" : "Inactive"}
+          </span>
         </div>
 
         <div className="mt-4">
@@ -91,6 +110,7 @@ const TaskPreviewModal = ({ task, isOpen, onClose }) => {
           )}
         </div>
       </div>
+
       <form onSubmit={handleCommentSubmit} className="mt-4 flex gap-2">
         <input
           type="text"

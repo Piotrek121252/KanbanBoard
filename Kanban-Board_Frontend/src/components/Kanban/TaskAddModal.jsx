@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Modal from "../Modal";
 import { useCookies } from "react-cookie";
 import axios from "axios";
+// import priorityOptions from "../../constants/priorityOptions";
+import priorityMap from "../../constants/priorityMap";
 
 const TaskAddModal = ({ columns, isOpen, onClose, onSave }) => {
   const [cookie] = useCookies("token");
@@ -10,6 +12,7 @@ const TaskAddModal = ({ columns, isOpen, onClose, onSave }) => {
     description: "",
     dueDate: "",
     columnId: "", // Domyślnie wybieramy pierwszą kolumnę
+    priority: "LOW",
   });
 
   useEffect(() => {
@@ -19,6 +22,7 @@ const TaskAddModal = ({ columns, isOpen, onClose, onSave }) => {
         description: "",
         dueDate: "",
         columnId: columns.length > 0 ? columns[0].id : "",
+        priority: "LOW",
       });
     }
   }, [isOpen, columns]);
@@ -39,6 +43,7 @@ const TaskAddModal = ({ columns, isOpen, onClose, onSave }) => {
           name: formData.name,
           description: formData.description,
           dueDate: formData.dueDate,
+          priority: formData.priority,
         },
         {
           headers: { Authorization: `Bearer ${cookie.token}` },
@@ -108,6 +113,24 @@ const TaskAddModal = ({ columns, isOpen, onClose, onSave }) => {
             onChange={handleChange}
             className="w-full rounded-md bg-gray-700 text-gray-100 p-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
           />
+        </label>
+
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Priorytet
+          <select
+            name="priority"
+            value={formData.priority}
+            onChange={handleChange}
+            className={`w-full rounded-md p-2 border focus:border-blue-500 focus:outline-none ${
+              priorityMap[formData.priority]?.color || "bg-gray-700"
+            } text-white`}
+          >
+            {Object.entries(priorityMap).map(([key, val]) => (
+              <option key={key} value={key} className={val.color}>
+                {val.text}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div className="flex justify-end">

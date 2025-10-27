@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { TbEdit } from "react-icons/tb";
 import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
 import { FaToggleOn, FaToggleOff } from "react-icons/fa6";
-import priorityMap from "../../constants/priorityMap";
+import priorityMap from "../../constants/PriorityMap";
 
 const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
   const { id, name, description, dueDate, isActive, priority } = task;

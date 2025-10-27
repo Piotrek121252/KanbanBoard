@@ -1,9 +1,24 @@
 const priorityMap = {
-  LOW: { color: "bg-green-500", text: "Low" },
-  MEDIUM: { color: "bg-blue-500", text: "Medium" },
-  HIGH: { color: "bg-orange-500", text: "High" },
-  URGENT: { color: "bg-red-500", text: "Urgent" },
-  CRITICAL: { color: "bg-purple-500", text: "Critical" },
+  LOW: {
+    color: "bg-emerald-600 hover:bg-emerald-500",
+    text: "Low",
+  },
+  MEDIUM: {
+    color: "bg-sky-600 hover:bg-sky-500",
+    text: "Medium",
+  },
+  HIGH: {
+    color: "bg-amber-500 hover:bg-amber-400",
+    text: "High",
+  },
+  URGENT: {
+    color: "bg-orange-500 hover:bg-orange-400",
+    text: "Urgent",
+  },
+  CRITICAL: {
+    color: "bg-red-600 hover:bg-red-500",
+    text: "Critical",
+  },
 };
 
 export default priorityMap;

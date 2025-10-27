@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Modal from "../Modal";
 import { useCookies } from "react-cookie";
 import axios from "axios";
+import priorityMap from "../../constants/priorityMap";
 
 const TaskEditModal = ({ task, columns, isOpen, onClose, onRefresh }) => {
   const [cookie] = useCookies(["token"]);
@@ -11,6 +12,7 @@ const TaskEditModal = ({ task, columns, isOpen, onClose, onRefresh }) => {
     dueDate: "",
     columnId: "",
     isActive: true,
+    priority: "MEDIUM",
   });
 
   useEffect(() => {
@@ -21,6 +23,7 @@ const TaskEditModal = ({ task, columns, isOpen, onClose, onRefresh }) => {
         dueDate: task.dueDate ? task.dueDate.slice(0, 16) : "",
         columnId: task.columnId || "",
         isActive: task.isActive ?? true,
+        priority: task.priority || "MEDIUM",
       });
     }
   }, [task, isOpen]);
@@ -45,6 +48,7 @@ const TaskEditModal = ({ task, columns, isOpen, onClose, onRefresh }) => {
           description: formData.description,
           dueDate: formData.dueDate,
           isActive: formData.isActive,
+          priority: formData.priority,
         },
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
@@ -106,6 +110,24 @@ const TaskEditModal = ({ task, columns, isOpen, onClose, onRefresh }) => {
             {columns.map((col) => (
               <option key={col.id} value={col.id}>
                 {col.title}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block text-gray-300 text-sm font-medium mb-1">
+          Priorytet
+          <select
+            name="priority"
+            value={formData.priority}
+            onChange={handleChange}
+            className={`w-full rounded-md p-2 border focus:border-blue-500 focus:outline-none ${
+              priorityMap[formData.priority]?.color || "bg-gray-700"
+            } text-white`}
+          >
+            {Object.entries(priorityMap).map(([key, val]) => (
+              <option key={key} value={key} className={val.color}>
+                {val.text}
               </option>
             ))}
           </select>
