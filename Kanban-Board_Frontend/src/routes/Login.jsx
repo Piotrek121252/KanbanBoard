@@ -20,10 +20,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:8080/api/auth/login",
-        {
-          username,
-          password,
-        }
+        { username, password }
       );
 
       const { accessToken, tokenType } = response.data;

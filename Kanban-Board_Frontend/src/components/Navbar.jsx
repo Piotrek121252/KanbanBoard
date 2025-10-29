@@ -1,12 +1,14 @@
 import { BiSolidDashboard } from "react-icons/bi";
 import { Link, NavLink } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
+  const { username, logout } = useAuth();
+
   const navLinks = [
     { to: "/", label: "Home" },
     { to: "/boards", label: "Boards" },
     { to: "/about", label: "About" },
-    { to: "/login", label: "Login" },
   ];
 
   return (
@@ -16,7 +18,7 @@ const Navbar = () => {
         <span className="text-2xl font-semibold">TaskFlow</span>
       </Link>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 items-center">
         {navLinks.map(({ to, label }) => (
           <NavLink
             key={to}
@@ -32,6 +34,31 @@ const Navbar = () => {
             {label}
           </NavLink>
         ))}
+
+        {username ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sky-300 font-medium">Hello, {username}</span>
+            <button
+              onClick={logout}
+              className="px-3 py-1 text-lg text-white bg-red-600 rounded-2xl hover:bg-red-700 transition"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <NavLink
+            to="/login"
+            className={({ isActive }) =>
+              `px-3 py-1 text-lg text-white rounded-2xl transition duration-300 ${
+                isActive
+                  ? "bg-slate-700 text-sky-300"
+                  : "hover:bg-slate-700 hover:text-sky-300"
+              }`
+            }
+          >
+            Login
+          </NavLink>
+        )}
       </div>
     </nav>
   );
