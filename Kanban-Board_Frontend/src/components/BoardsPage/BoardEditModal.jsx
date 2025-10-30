@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 import { FaUsers, FaInfoCircle } from "react-icons/fa";
@@ -10,6 +10,30 @@ const BoardEditModal = ({ board, isOpen, onClose, onEdit }) => {
   const [isPublic, setIsPublic] = useState(board.isPublic);
   const [saving, setSaving] = useState(false);
   const [cookie] = useCookies("token");
+
+  const [allUsers, setAllUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (board && isOpen) {
+      fetchAvailableUsers();
+    }
+  }, [board, isOpen, searchQuery]);
+
+  const fetchAvailableUsers = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/users?excludeBoardId=${Number(board.id)}&search=${encodeURIComponent(
+          searchQuery
+        )}`,
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      console.log(board.id);
+      setAllUsers(res.data);
+    } catch (err) {
+      console.error("Nie udało się pobrać użytkowników:", err);
+    }
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -27,6 +51,53 @@ const BoardEditModal = ({ board, isOpen, onClose, onEdit }) => {
       alert("Nie udało się zapisać zmian.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const addMember = async (userId, role = "VIEWER") => {
+    if (!userId) return;
+    try {
+      await axios.post(
+        `http://localhost:8080/api/boards/${board.id}/members`,
+        { userId: Number(userId), role: role },
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      if (onEdit) onEdit();
+      fetchAvailableUsers();
+    } catch (err) {
+      console.error("Nie udało się dodać członka:", err);
+      alert("Nie udało się dodać członka.");
+    }
+  };
+
+  const deleteMember = async (userId) => {
+    if (!userId) return;
+    try {
+      await axios.delete(
+        `http://localhost:8080/api/boards/${board.id}/members/${Number(userId)}`,
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      if (onEdit) onEdit();
+    } catch (err) {
+      console.error("Nie udało się usunąć członka:", err);
+      alert("Nie udało się usunąć członka.");
+    }
+  };
+
+  const changeMemberRole = async (userId, role) => {
+    if (!userId) return;
+    try {
+      await axios.patch(
+        `http://localhost:8080/api/boards/${board.id}/members/${Number(
+          userId
+        )}/role`,
+        { role: role },
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      if (onEdit) onEdit();
+    } catch (err) {
+      console.error("Nie udało się zmienić roli członka:", err);
+      alert("Nie udało się zmienić roli członka.");
     }
   };
 
@@ -88,40 +159,71 @@ const BoardEditModal = ({ board, isOpen, onClose, onEdit }) => {
       )}
 
       {activeTab === "members" && (
-        <div className="mt-2 max-h-96 overflow-y-auto flex flex-col gap-4">
-          {board.members.map((member) => {
-            let roleColor = "bg-gray-500 text-white";
-            if (member.boardRole === "ADMIN")
-              roleColor = "bg-red-500 text-white";
-            else if (member.boardRole === "EDITOR")
-              roleColor = "bg-yellow-500 text-black";
-            else if (member.boardRole === "VIEWER")
-              roleColor = "bg-green-500 text-white";
+        <div className="mt-2 flex flex-col gap-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Szukaj użytkowników do dodania..."
+            className="p-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 w-full"
+          />
 
-            return (
+          <div className="mt-2 max-h-96 overflow-y-auto flex flex-col gap-2">
+            {allUsers.map((user) => (
               <div
-                key={member.userId}
-                className="w-full p-4 bg-gray-700 rounded-lg shadow hover:bg-gray-600 transition"
+                key={`add-${user.id}`}
+                className="flex justify-between items-center p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition"
               >
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {member.username[0].toUpperCase()}
-                  </div>
+                <div>
+                  <p className="text-gray-100 font-semibold">{user.username}</p>
+                  <p className="text-gray-400 text-sm">{user.email}</p>
+                </div>
+                <button
+                  onClick={() => addMember(user.id)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Dodaj
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 max-h-96 overflow-y-auto flex flex-col gap-2">
+            {board.members.map((member) => {
+              return (
+                <div
+                  key={`member-${member.userId}`}
+                  className="flex justify-between items-center p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition"
+                >
                   <div>
-                    <p className="text-gray-100 font-semibold text-lg">
+                    <p className="text-gray-100 font-semibold">
                       {member.username}
                     </p>
-                    <p className="text-gray-300 text-sm">{member.email}</p>
+                    <p className="text-gray-400 text-sm">{member.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={member.boardRole}
+                      onChange={(e) =>
+                        changeMemberRole(member.userId, e.target.value)
+                      }
+                      className="bg-gray-800 text-gray-100 p-1 rounded-lg"
+                    >
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="EDITOR">EDITOR</option>
+                      <option value="VIEWER">VIEWER</option>
+                    </select>
+                    <button
+                      onClick={() => deleteMember(member.userId)}
+                      className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    >
+                      Usuń
+                    </button>
                   </div>
                 </div>
-                <span
-                  className={`inline-block px-3 py-1 rounded font-semibold text-sm ${roleColor}`}
-                >
-                  {member.boardRole}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </Modal>

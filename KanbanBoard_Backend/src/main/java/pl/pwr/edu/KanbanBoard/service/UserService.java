@@ -109,17 +109,24 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public List<UserDto> getAllUsers(Integer excludeBoardId) {
+    public List<UserDto> getAllUsers(Integer excludeBoardId, String search) {
         List<UserEntity> users = userRepository.findAll();
 
         if (excludeBoardId != null) {
-            List<BoardMember> boardMembers = boardMemberRepository.findByBoardId(excludeBoardId);
-            Set<Integer> memberId = boardMembers.stream()
+            Set<Integer> memberIds = boardMemberRepository.findByBoardId(excludeBoardId).stream()
                     .map(boardMember -> boardMember.getUser().getId())
                     .collect(Collectors.toSet());
 
             users = users.stream()
-                    .filter(user -> !memberId.contains(user.getId()))
+                    .filter(user -> !memberIds.contains(user.getId()))
+                    .toList();
+        }
+
+        if (search != null && !search.isBlank()) {
+            String lowerCaseSearch = search.toLowerCase();
+            users = users.stream()
+                    .filter(user -> user.getUsername().toLowerCase().contains(lowerCaseSearch)
+                            || user.getEmail().toLowerCase().contains(lowerCaseSearch))
                     .toList();
         }
 

@@ -24,8 +24,9 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers(
-            @RequestParam(required = false) Integer excludeBoardId // Opcjonalny parametr pozwalający wyświetlić użytkowników z pominięciem członków z danej tablicy
+            @RequestParam(required = false) Integer excludeBoardId, // Opcjonalny parametr pozwalający wyświetlić użytkowników z pominięciem członków z danej tablicy
+            @RequestParam(required = false) String search // Search query
     ) {
-        return ResponseEntity.ok(userService.getAllUsers(excludeBoardId));
+        return ResponseEntity.ok(userService.getAllUsers(excludeBoardId, search));
     }
 }

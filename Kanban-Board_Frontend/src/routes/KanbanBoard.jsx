@@ -11,7 +11,6 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
-
 import Column from "../components/Kanban/Column";
 import TaskOverlay from "../components/Kanban/TaskOverlay";
 import TaskEditModal from "../components/Kanban/TaskEditModal";
@@ -20,15 +19,9 @@ import TaskPreviewModal from "../components/Kanban/TaskPreviewModal";
 import ColumnAddModal from "../components/Kanban/ColumnAddModal";
 import ColumnEditModal from "../components/Kanban/ColumnEditModal";
 import { useParams } from "react-router-dom";
-
-const COLUMN_COLORS = [
-  { color: "#3730a3" }, // Dark Indigo
-  { color: "#15803d" }, // Dark Green
-  { color: "#b91c1c" }, // Dark Red
-  { color: "#b45309" }, // Dark Amber
-  { color: "#0369a1" }, // Dark Blue
-  { color: "#4b5563", isDefault: true }, // Dark Gray — default
-];
+import { FaCog } from "react-icons/fa";
+import { COLUMN_COLORS } from "../constants/columnColors";
+import BoardEditModal from "../components/BoardsPage/BoardEditModal";
 
 const KanbanBoard = () => {
   const { id: boardId } = useParams();
@@ -43,6 +36,8 @@ const KanbanBoard = () => {
   const [isAddColumnOpen, setIsAddColumnOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [isEditColumnOpen, setIsEditColumnOpen] = useState(false);
+  const [isBoardSettingsOpen, setIsBoardSettingsOpen] = useState(false);
+  const [boardData, setBoardData] = useState(null);
 
   const fetchBoardData = useCallback(async () => {
     try {
@@ -51,6 +46,7 @@ const KanbanBoard = () => {
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
       setBoardName(boardRes.data.name);
+      setBoardData(boardRes.data);
 
       const columnsRes = await axios.get(
         `http://localhost:8080/api/boards/${boardId}/columns`,
@@ -279,10 +275,21 @@ const KanbanBoard = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-100 pt-20">
       <div className="flex justify-between items-center mb-4 px-6">
-        <h1 className="text-2xl font-semibold">
-          {boardName || "Ładowanie tablicy..."}
-        </h1>
-
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold">
+            {boardName || "Ładowanie tablicy..."}
+          </h1>
+          {boardData && (
+            <span
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full border border-gray-600 bg-gray-800 text-gray-300`}
+              title={
+                boardData.isPublic ? "Publiczna tablica" : "Prywatna tablica"
+              }
+            >
+              {boardData.isPublic ? "Publiczna" : "Prywatna"}
+            </span>
+          )}
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => setIsAddColumnOpen(true)}
@@ -295,6 +302,13 @@ const KanbanBoard = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-4 font-medium transition"
           >
             + Dodaj zadanie
+          </button>
+          <button
+            onClick={() => setIsBoardSettingsOpen(true)}
+            className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md py-2 px-4 font-medium transition"
+          >
+            <FaCog className="text-white" size={18} />
+            <span>Ustawienia tablicy</span>
           </button>
         </div>
       </div>
@@ -382,6 +396,14 @@ const KanbanBoard = () => {
         onClose={() => setIsEditColumnOpen(false)}
         onRefresh={fetchBoardData}
       />
+      {boardData && (
+        <BoardEditModal
+          board={boardData}
+          isOpen={isBoardSettingsOpen}
+          onClose={() => setIsBoardSettingsOpen(false)}
+          onEdit={fetchBoardData} // refresh board after changes
+        />
+      )}
     </div>
   );
 };
