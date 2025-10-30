@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTrash, FaStar, FaRegStar, FaEdit } from "react-icons/fa";
-import Modal from "../Modal";
 import BoardEditModal from "./BoardEditModal";
 
 const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {

@@ -89,7 +89,7 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
 
         <div className="flex justify-between mt-2 items-center">
           <span
-            className={`inline-block px-2 py-1 text-xs font-semibold rounded ${taskPriority.color} text-white`}
+            className={`inline-block px-2 py-1 text-xs font-semibold rounded ${taskPriority.color} text-white select-none`}
             title={`Priority: ${taskPriority.text}`}
           >
             {taskPriority.text}

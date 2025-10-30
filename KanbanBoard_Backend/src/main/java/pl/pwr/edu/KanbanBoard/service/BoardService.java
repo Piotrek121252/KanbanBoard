@@ -39,9 +39,13 @@ public class BoardService {
         UserEntity user = userService.getUserByUsername(username);
 
         return boardRepository.findAll().stream()
+                .filter(board -> board.getIsPublic() ||
+                        board.getBoardMembers().stream()
+                                .anyMatch(member -> member.getUser().equals(user)))
                 .map(board -> boardMapper.toDto(board, user))
                 .collect(Collectors.toList());
     }
+
 
     public BoardDto getBoardById(Integer id, String username) {
         UserEntity user = userService.getUserByUsername(username);

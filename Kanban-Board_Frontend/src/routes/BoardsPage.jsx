@@ -1,24 +1,27 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
 import axios from "axios";
 import Modal from "../components/Modal";
 import BoardCard from "../components/BoardsPage/BoardCard";
+import useAuth from "../hooks/useAuth";
+import { Link } from "react-router-dom";
 
 const BoardsPage = () => {
   const [boards, setBoards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cookie] = useCookies("token");
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [creating, setCreating] = useState(false);
 
+  const { token, username } = useAuth();
+
   const fetchBoards = useCallback(async () => {
+    if (!token) return;
+
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:8080/api/boards", {
-        headers: { Authorization: `Bearer ${cookie.token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setBoards(response.data);
     } catch (err) {
@@ -27,11 +30,40 @@ const BoardsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [cookie.token]);
+  }, [token]);
 
   useEffect(() => {
     fetchBoards();
   }, [fetchBoards]);
+
+  if (!token || !username) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 px-6">
+        <div className="bg-gray-800 rounded-2xl shadow-2xl p-10 text-center max-w-md w-full">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Nie jesteś zalogowany
+          </h2>
+          <p className="mb-6 text-gray-400 text-lg">
+            Zaloguj się, aby zobaczyć swoje tablice i kontynuować pracę nad
+            projektami.
+          </p>
+          <Link
+            to="/login"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold"
+          >
+            Zaloguj się!
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <p className="p-6 pt-20 text-gray-300">Ładowanie tablic...</p>;
+  }
+
+  const favoriteBoards = boards.filter((b) => b.isFavorite);
+  const otherBoards = boards.filter((b) => !b.isFavorite);
 
   const handleCreateBoard = async (e) => {
     e.preventDefault();
@@ -42,13 +74,11 @@ const BoardsPage = () => {
       await axios.post(
         "http://localhost:8080/api/boards",
         { name: newBoardName, isPublic },
-        { headers: { Authorization: `Bearer ${cookie.token}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setNewBoardName("");
       setIsPublic(true);
       setIsModalOpen(false);
-
       fetchBoards();
     } catch (err) {
       console.error("Nie udało się utworzyć tablicy:", err);
@@ -63,7 +93,7 @@ const BoardsPage = () => {
 
     try {
       await axios.delete(`http://localhost:8080/api/boards/${boardId}`, {
-        headers: { Authorization: `Bearer ${cookie.token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchBoards();
     } catch (err) {
@@ -77,17 +107,13 @@ const BoardsPage = () => {
       if (board.isFavorite) {
         await axios.delete(
           `http://localhost:8080/api/boards/${board.id}/favorite`,
-          {
-            headers: { Authorization: `Bearer ${cookie.token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         await axios.post(
           `http://localhost:8080/api/boards/${board.id}/favorite`,
           {},
-          {
-            headers: { Authorization: `Bearer ${cookie.token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
       }
       fetchBoards();
@@ -96,12 +122,6 @@ const BoardsPage = () => {
       alert("Nie udało się zmienić ulubionych.");
     }
   };
-
-  if (loading)
-    return <p className="p-6 pt-20 text-gray-300">Ładowanie tablic...</p>;
-
-  const favoriteBoards = boards.filter((b) => b.isFavorite);
-  const otherBoards = boards.filter((b) => !b.isFavorite);
 
   return (
     <div className="p-6 pt-20 min-h-screen bg-gray-900 text-gray-100">

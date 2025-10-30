@@ -36,11 +36,15 @@ const Navbar = () => {
         ))}
 
         {username ? (
-          <div className="flex items-center gap-3">
-            <span className="text-sky-300 font-medium">Hello, {username}</span>
+          <div className="flex items-center gap-3 ml-4">
+            <span className="bg-slate-700 text-sky-300 px-3 py-1 rounded-full font-medium text-sm">
+              {username}
+            </span>
+
             <button
               onClick={logout}
-              className="px-3 py-1 text-lg text-white bg-red-600 rounded-2xl hover:bg-red-700 transition"
+              className="flex items-center px-3 py-1 text-sm text-white bg-red-600 rounded-full hover:bg-red-700 transition duration-300"
+              title="Logout"
             >
               Logout
             </button>

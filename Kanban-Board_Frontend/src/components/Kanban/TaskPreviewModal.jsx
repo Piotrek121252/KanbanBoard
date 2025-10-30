@@ -75,7 +75,7 @@ const TaskPreviewModal = ({ task, isOpen, onClose }) => {
 
         <div className="flex justify-between items-center">
           <span
-            className={`px-2 py-1 rounded-md text-xs font-semibol text-white ${priority.color}`}
+            className={`px-2 py-1 rounded-md text-xs font-semibold text-white ${priority.color}`}
           >
             {priority.text}
           </span>
