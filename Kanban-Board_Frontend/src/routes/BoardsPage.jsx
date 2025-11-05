@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import Modal from "../components/Modal";
-import BoardEditModal from "../components/BoardsPage/BoardEditModal";
+import BoardPreviewModal from "../components/BoardsPage/BoardPreviewModal";
 import BoardCard from "../components/BoardsPage/BoardCard";
 import useAuth from "../hooks/useAuth";
 import { Link } from "react-router-dom";
@@ -14,8 +14,9 @@ const BoardsPage = () => {
   const [newBoardName, setNewBoardName] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [creating, setCreating] = useState(false);
+
   const [selectedBoard, setSelectedBoard] = useState(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const { token, username } = useAuth();
 
@@ -135,6 +136,11 @@ const BoardsPage = () => {
     }
   };
 
+  const openPreview = (board) => {
+    setSelectedBoard(board);
+    setIsPreviewOpen(true);
+  };
+
   return (
     <div className="p-6 pt-20 min-h-screen bg-gray-900 text-gray-100">
       <div className="flex items-center justify-between mb-6">
@@ -147,108 +153,62 @@ const BoardsPage = () => {
         </button>
       </div>
 
-      {boards.length === 0 ? (
-        <p className="text-gray-400">Nie masz jeszcze tablic.</p>
-      ) : (
-        <>
-          {favoriteBoards.length > 0 && (
-            <div className="mb-10">
-              <h2 className="text-xl font-semibold mb-3">⭐ Ulubione</h2>
+      {favoriteBoards.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-xl font-semibold mb-3">⭐ Ulubione</h2>
 
-              {favoriteGrouped.public.length > 0 && (
-                <>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
-                    <FaGlobe size={12} /> Publiczne
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
-                    {favoriteGrouped.public.map((board) => (
-                      <BoardCard
-                        key={board.id}
-                        board={board}
-                        onDelete={handleDeleteBoard}
-                        onToggleFavorite={handleToggleFavorite}
-                        onEdit={() => {
-                          setSelectedBoard(board);
-                          setIsEditOpen(true);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {favoriteGrouped.private.length > 0 && (
-                <>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
-                    <FaLock size={12} /> Prywatne
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {favoriteGrouped.private.map((board) => (
-                      <BoardCard
-                        key={board.id}
-                        board={board}
-                        onDelete={handleDeleteBoard}
-                        onToggleFavorite={handleToggleFavorite}
-                        onEdit={() => {
-                          setSelectedBoard(board);
-                          setIsEditOpen(true);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          <div>
-            <h2 className="text-xl font-semibold mb-3">📁 Pozostałe</h2>
-
-            {regularGrouped.public.length > 0 && (
-              <>
+          {["public", "private"].map((type) =>
+            favoriteGrouped[type].length > 0 ? (
+              <div key={type} className="mb-6">
                 <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
-                  <FaGlobe size={12} /> Publiczne
+                  {type === "public" ? (
+                    <FaGlobe size={12} />
+                  ) : (
+                    <FaLock size={12} />
+                  )}
+                  {type === "public" ? "Publiczne" : "Prywatne"}
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
-                  {regularGrouped.public.map((board) => (
-                    <BoardCard
-                      key={board.id}
-                      board={board}
-                      onDelete={handleDeleteBoard}
-                      onToggleFavorite={handleToggleFavorite}
-                      onEdit={() => {
-                        setSelectedBoard(board);
-                        setIsEditOpen(true);
-                      }}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
 
-            {regularGrouped.private.length > 0 && (
-              <>
-                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
-                  <FaLock size={12} /> Prywatne
-                </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {regularGrouped.private.map((board) => (
+                  {favoriteGrouped[type].map((board) => (
                     <BoardCard
                       key={board.id}
                       board={board}
-                      onDelete={handleDeleteBoard}
                       onToggleFavorite={handleToggleFavorite}
-                      onEdit={() => {
-                        setSelectedBoard(board);
-                        setIsEditOpen(true);
-                      }}
+                      onDelete={handleDeleteBoard}
+                      onEdit={() => openPreview(board)}
                     />
                   ))}
                 </div>
-              </>
-            )}
+              </div>
+            ) : null
+          )}
+        </div>
+      )}
+
+      <h2 className="text-xl font-semibold mb-3">📁 Pozostałe</h2>
+
+      {["public", "private"].map((type) =>
+        regularGrouped[type].length > 0 ? (
+          <div key={type} className="mb-6">
+            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
+              {type === "public" ? <FaGlobe size={12} /> : <FaLock size={12} />}
+              {type === "public" ? "Publiczne" : "Prywatne"}
+            </span>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {regularGrouped[type].map((board) => (
+                <BoardCard
+                  key={board.id}
+                  board={board}
+                  onToggleFavorite={handleToggleFavorite}
+                  onDelete={handleDeleteBoard}
+                  onEdit={() => openPreview(board)}
+                />
+              ))}
+            </div>
           </div>
-        </>
+        ) : null
       )}
 
       <Modal
@@ -285,14 +245,10 @@ const BoardsPage = () => {
       </Modal>
 
       {selectedBoard && (
-        <BoardEditModal
+        <BoardPreviewModal
           board={selectedBoard}
-          isOpen={isEditOpen}
-          onClose={() => {
-            setIsEditOpen(false);
-            setSelectedBoard(null);
-          }}
-          onEdit={fetchBoards}
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
         />
       )}
     </div>

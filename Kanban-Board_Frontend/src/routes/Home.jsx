@@ -100,17 +100,29 @@ const Home = () => {
 
       {token && boards.length > 0 && (
         <div className="max-w-7xl mx-auto px-6 py-12">
-          <h2 className="text-3xl font-semibold mb-6">
-            Twoje ostatnie tablice
-          </h2>
+          <h2 className="text-3xl font-semibold mb-6">⭐ Ulubione tablice</h2>
+
           {loading ? (
             <p className="text-gray-400">Ładowanie tablic...</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {boards.slice(0, 3).map((board) => (
-                <HomeBoardCard key={board.id} board={board} />
-              ))}
-            </div>
+            <>
+              {boards.filter((b) => b.isFavorite).length === 0 ? (
+                <p className="text-gray-400">
+                  Nie masz jeszcze tablic ulubionych.
+                  <br />
+                  Oznacz tablicę gwiazdką, aby pojawiła się tutaj!
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {boards
+                    .filter((b) => b.isFavorite)
+                    .slice(0, 4)
+                    .map((board) => (
+                      <HomeBoardCard key={board.id} board={board} />
+                    ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

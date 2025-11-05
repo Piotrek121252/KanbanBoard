@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { FaTrash, FaStar, FaRegStar, FaEdit } from "react-icons/fa";
-import BoardEditModal from "./BoardEditModal";
+import { FaTrash, FaStar, FaRegStar } from "react-icons/fa";
+import { IoPeopleSharp } from "react-icons/io5";
 
 const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
   const navigate = useNavigate();
@@ -28,6 +28,9 @@ const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
               onToggleFavorite(board);
             }}
             className="text-yellow-400 hover:text-yellow-300"
+            title={
+              board.isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"
+            }
           >
             {board.isFavorite ? <FaStar size={18} /> : <FaRegStar size={18} />}
           </button>
@@ -38,8 +41,9 @@ const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
               onEdit(board);
             }}
             className="text-blue-400 hover:text-blue-300"
+            title="Podgląd tablicy i członków"
           >
-            <FaEdit size={18} />
+            <IoPeopleSharp size={18} />
           </button>
 
           <button
@@ -48,6 +52,7 @@ const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
               onDelete(board.id);
             }}
             className="text-gray-600 hover:text-red-500"
+            title="Usuń tablicę"
           >
             <FaTrash size={18} />
           </button>
