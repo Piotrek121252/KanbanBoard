@@ -5,6 +5,7 @@ import BoardEditModal from "../components/BoardsPage/BoardEditModal";
 import BoardCard from "../components/BoardsPage/BoardCard";
 import useAuth from "../hooks/useAuth";
 import { Link } from "react-router-dom";
+import { FaLock, FaGlobe } from "react-icons/fa";
 
 const BoardsPage = () => {
   const [boards, setBoards] = useState([]);
@@ -66,7 +67,15 @@ const BoardsPage = () => {
   }
 
   const favoriteBoards = boards.filter((b) => b.isFavorite);
-  const otherBoards = boards.filter((b) => !b.isFavorite);
+  const regularBoards = boards.filter((b) => !b.isFavorite);
+
+  const groupVisibility = (list) => ({
+    public: list.filter((b) => b.isPublic),
+    private: list.filter((b) => !b.isPublic),
+  });
+
+  const favoriteGrouped = groupVisibility(favoriteBoards);
+  const regularGrouped = groupVisibility(regularBoards);
 
   const handleCreateBoard = async (e) => {
     e.preventDefault();
@@ -129,60 +138,116 @@ const BoardsPage = () => {
   return (
     <div className="p-6 pt-20 min-h-screen bg-gray-900 text-gray-100">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold mb-4">Twoje tablice</h1>
+        <h1 className="text-2xl font-semibold">Lista dostępnych tablic</h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition"
         >
           + Stwórz nową tablicę
         </button>
       </div>
 
       {boards.length === 0 ? (
-        <p>Nie masz żadnych tablic, pomyśl nad utworzeniem nowej.</p>
+        <p className="text-gray-400">Nie masz jeszcze tablic.</p>
       ) : (
         <>
           {favoriteBoards.length > 0 && (
-            <>
-              <h2 className="text-xl font-semibold mb-2">
-                Twoje ulubione tablice:
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {favoriteBoards.map((board) => (
-                  <BoardCard
-                    key={board.id}
-                    board={board}
-                    onDelete={handleDeleteBoard}
-                    onToggleFavorite={handleToggleFavorite}
-                    onEdit={() => {
-                      setSelectedBoard(board);
-                      setIsEditOpen(true);
-                    }}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="mb-10">
+              <h2 className="text-xl font-semibold mb-3">⭐ Ulubione</h2>
+
+              {favoriteGrouped.public.length > 0 && (
+                <>
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
+                    <FaGlobe size={12} /> Publiczne
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+                    {favoriteGrouped.public.map((board) => (
+                      <BoardCard
+                        key={board.id}
+                        board={board}
+                        onDelete={handleDeleteBoard}
+                        onToggleFavorite={handleToggleFavorite}
+                        onEdit={() => {
+                          setSelectedBoard(board);
+                          setIsEditOpen(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {favoriteGrouped.private.length > 0 && (
+                <>
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
+                    <FaLock size={12} /> Prywatne
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {favoriteGrouped.private.map((board) => (
+                      <BoardCard
+                        key={board.id}
+                        board={board}
+                        onDelete={handleDeleteBoard}
+                        onToggleFavorite={handleToggleFavorite}
+                        onEdit={() => {
+                          setSelectedBoard(board);
+                          setIsEditOpen(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
-          {otherBoards.length > 0 && (
-            <>
-              <h2 className="text-xl font-semibold mb-2">Pozostałe tablice:</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {otherBoards.map((board) => (
-                  <BoardCard
-                    key={board.id}
-                    board={board}
-                    onDelete={handleDeleteBoard}
-                    onToggleFavorite={handleToggleFavorite}
-                    onEdit={() => {
-                      setSelectedBoard(board);
-                      setIsEditOpen(true);
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
+          <div>
+            <h2 className="text-xl font-semibold mb-3">📁 Pozostałe</h2>
+
+            {regularGrouped.public.length > 0 && (
+              <>
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
+                  <FaGlobe size={12} /> Publiczne
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+                  {regularGrouped.public.map((board) => (
+                    <BoardCard
+                      key={board.id}
+                      board={board}
+                      onDelete={handleDeleteBoard}
+                      onToggleFavorite={handleToggleFavorite}
+                      onEdit={() => {
+                        setSelectedBoard(board);
+                        setIsEditOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {regularGrouped.private.length > 0 && (
+              <>
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-300 mb-1">
+                  <FaLock size={12} /> Prywatne
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {regularGrouped.private.map((board) => (
+                    <BoardCard
+                      key={board.id}
+                      board={board}
+                      onDelete={handleDeleteBoard}
+                      onToggleFavorite={handleToggleFavorite}
+                      onEdit={() => {
+                        setSelectedBoard(board);
+                        setIsEditOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </>
       )}
 
