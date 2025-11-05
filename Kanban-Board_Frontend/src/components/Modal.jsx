@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, width = "30rem" }) => {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -14,9 +14,9 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   return (
     <dialog
       ref={dialogRef}
-      className="bg-gray-800 rounded-xl w-full max-w-md p-6 border-none"
+      style={{ width }}
+      className="bg-gray-800 rounded-xl p-6 border-none"
       onClick={(e) => {
-        // Kliknięcie poza modalem
         if (e.target === dialogRef.current) onClose();
       }}
     >
