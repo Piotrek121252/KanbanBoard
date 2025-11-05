@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import Modal from "../components/Modal";
+import BoardEditModal from "../components/BoardsPage/BoardEditModal";
 import BoardCard from "../components/BoardsPage/BoardCard";
 import useAuth from "../hooks/useAuth";
 import { Link } from "react-router-dom";
@@ -12,6 +13,8 @@ const BoardsPage = () => {
   const [newBoardName, setNewBoardName] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [selectedBoard, setSelectedBoard] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const { token, username } = useAuth();
 
@@ -151,7 +154,10 @@ const BoardsPage = () => {
                     board={board}
                     onDelete={handleDeleteBoard}
                     onToggleFavorite={handleToggleFavorite}
-                    onEdit={fetchBoards}
+                    onEdit={() => {
+                      setSelectedBoard(board);
+                      setIsEditOpen(true);
+                    }}
                   />
                 ))}
               </div>
@@ -168,7 +174,10 @@ const BoardsPage = () => {
                     board={board}
                     onDelete={handleDeleteBoard}
                     onToggleFavorite={handleToggleFavorite}
-                    onEdit={fetchBoards}
+                    onEdit={() => {
+                      setSelectedBoard(board);
+                      setIsEditOpen(true);
+                    }}
                   />
                 ))}
               </div>
@@ -209,6 +218,18 @@ const BoardsPage = () => {
           </button>
         </form>
       </Modal>
+
+      {selectedBoard && (
+        <BoardEditModal
+          board={selectedBoard}
+          isOpen={isEditOpen}
+          onClose={() => {
+            setIsEditOpen(false);
+            setSelectedBoard(null);
+          }}
+          onEdit={fetchBoards}
+        />
+      )}
     </div>
   );
 };

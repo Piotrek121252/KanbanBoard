@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 import { FaUsers, FaInfoCircle } from "react-icons/fa";
@@ -14,26 +14,25 @@ const BoardEditModal = ({ board, isOpen, onClose, onEdit }) => {
   const [allUsers, setAllUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    if (board && isOpen) {
-      fetchAvailableUsers();
-    }
-  }, [board, isOpen, searchQuery]);
+  const fetchAvailableUsers = useCallback(async () => {
+    if (!board?.id) return;
 
-  const fetchAvailableUsers = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/users?excludeBoardId=${Number(board.id)}&search=${encodeURIComponent(
-          searchQuery
-        )}`,
+        `http://localhost:8080/api/users?excludeBoardId=${Number(board.id)}&search=${encodeURIComponent(searchQuery)}`,
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
-      console.log(board.id);
       setAllUsers(res.data);
     } catch (err) {
       console.error("Nie udało się pobrać użytkowników:", err);
     }
-  };
+  }, [board?.id, searchQuery, cookie.token]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAvailableUsers();
+    }
+  }, [isOpen, fetchAvailableUsers]);
 
   const handleSave = async (e) => {
     e.preventDefault();

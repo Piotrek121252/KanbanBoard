@@ -1,11 +1,9 @@
-import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTrash, FaStar, FaRegStar, FaEdit } from "react-icons/fa";
 import BoardEditModal from "./BoardEditModal";
 
 const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
   const navigate = useNavigate();
-  const [isEditOpen, setIsEditOpen] = useState(false);
 
   return (
     <>
@@ -37,7 +35,7 @@ const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setIsEditOpen(true);
+              onEdit(board);
             }}
             className="text-blue-400 hover:text-blue-300"
           >
@@ -55,15 +53,6 @@ const BoardCard = ({ board, onDelete, onToggleFavorite, onEdit }) => {
           </button>
         </div>
       </div>
-
-      {isEditOpen && (
-        <BoardEditModal
-          board={board}
-          isOpen={isEditOpen}
-          onClose={() => setIsEditOpen(false)}
-          onEdit={onEdit}
-        />
-      )}
     </>
   );
 };

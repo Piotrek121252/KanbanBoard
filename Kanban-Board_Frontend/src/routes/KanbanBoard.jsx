@@ -401,7 +401,7 @@ const KanbanBoard = () => {
           board={boardData}
           isOpen={isBoardSettingsOpen}
           onClose={() => setIsBoardSettingsOpen(false)}
-          onEdit={fetchBoardData} // refresh board after changes
+          onEdit={fetchBoardData}
         />
       )}
     </div>
