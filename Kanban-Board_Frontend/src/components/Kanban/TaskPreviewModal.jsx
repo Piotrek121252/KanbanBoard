@@ -4,7 +4,12 @@ import { useCookies } from "react-cookie";
 import axios from "axios";
 import priorityMap from "../../constants/PriorityMap.jsx";
 import TaskComment from "./TaskComment";
-import { FaExclamationTriangle } from "react-icons/fa";
+import {
+  FaExclamationTriangle,
+  FaInfoCircle,
+  FaComments,
+  FaClock,
+} from "react-icons/fa";
 
 const roleColors = {
   ADMIN: "bg-red-600 text-white",
@@ -16,6 +21,11 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
   const [cookie] = useCookies(["token"]);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [timeEntries, setTimeEntries] = useState([]);
+  const [newEntry, setNewEntry] = useState({
+    minutesSpent: "",
+    entryDate: "",
+  });
   const [activeTab, setActiveTab] = useState("info");
   const [showAssignList, setShowAssignList] = useState(false);
   const [assignedUsername, setAssignedUsername] = useState(
@@ -36,13 +46,34 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
     }
   }, [task?.id, cookie.token]);
 
+  const fetchTimeEntries = useCallback(async () => {
+    if (!task?.id) return;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/tasks/${task.id}/time-entries?year=${year}&month=${month}`,
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      setTimeEntries(res.data);
+    } catch (err) {
+      console.error("Błąd przy pobieraniu wpisów czasu", err);
+      setTimeEntries([]);
+    }
+  }, [task?.id, cookie.token]);
+
   useEffect(() => {
     if (!task) return;
 
     setAssignedUsername(task.assignedUsername || null);
 
-    if (isOpen) fetchComments();
-  }, [isOpen, task, fetchComments]);
+    if (isOpen) {
+      fetchComments();
+      fetchTimeEntries();
+      setNewEntry({ minutesSpent: "", entryDate: "" });
+    }
+  }, [isOpen, task, fetchComments, fetchTimeEntries]);
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -86,12 +117,88 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
       );
 
       const updatedTask = response.data;
-      setAssignedUsername(updatedTask.assignedUsername);
+      setAssignedUsername(updatedTask.assignedUsername || null);
+
       setShowAssignList(false);
     } catch (err) {
       console.error("Nie udało się przypisać użytkownika", err);
       alert("Nie udało się przypisać użytkownika");
     }
+  };
+
+  const handleAddEntry = async (e) => {
+    e.preventDefault();
+    if (
+      newEntry.minutesSpent === "" ||
+      newEntry.entryDate === "" ||
+      Number(newEntry.minutesSpent) <= 0
+    ) {
+      alert("Podaj poprawną liczbę minut oraz datę.");
+      return;
+    }
+
+    try {
+      const payload = {
+        minutesSpent: Number(newEntry.minutesSpent),
+        entryDate: newEntry.entryDate,
+      };
+      const res = await axios.post(
+        `http://localhost:8080/api/tasks/${task.id}/time-entries`,
+        payload,
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      setTimeEntries((prev) => [...prev, res.data]);
+      setNewEntry({ minutesSpent: "", entryDate: "" });
+    } catch (err) {
+      console.error("Nie udało się dodać wpisu czasu", err);
+      alert("Nie udało się dodać wpisu czasu");
+    }
+  };
+
+  const handleUpdateEntry = async (id, updated) => {
+    if (!updated || !("minutesSpent" in updated) || !updated.entryDate) {
+      alert("Niepoprawne dane do aktualizacji.");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `http://localhost:8080/api/tasks/${task.id}/time-entries/${id}`,
+        {
+          minutesSpent: Number(updated.minutesSpent),
+          entryDate: updated.entryDate,
+        },
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      setTimeEntries((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, ...updated } : e))
+      );
+    } catch (err) {
+      console.error("Nie udało się zaktualizować wpisu czasu", err);
+      alert("Nie udało się zaktualizować wpisu czasu");
+    }
+  };
+
+  const handleDeleteEntry = async (id) => {
+    if (!window.confirm("Czy na pewno chcesz usunąć ten wpis?")) return;
+    try {
+      await axios.delete(
+        `http://localhost:8080/api/tasks/${task.id}/time-entries/${id}`,
+        { headers: { Authorization: `Bearer ${cookie.token}` } }
+      );
+      setTimeEntries((prev) => prev.filter((e) => e.id !== id));
+    } catch (err) {
+      console.error("Nie udało się usunąć wpisu czasu", err);
+      alert("Nie udało się usunąć wpisu czasu");
+    }
+  };
+
+  const formatMinutes = (totalMinutes) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours && minutes) return `${hours}h ${minutes}m`;
+    if (hours) return `${hours}h`;
+    return `${minutes}m`;
   };
 
   const handleClose = () => {
@@ -112,23 +219,38 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
       <div className="flex border-b border-gray-700 mb-4">
         <button
           onClick={() => setActiveTab("info")}
-          className={`flex-1 py-2 px-4 text-center font-semibold ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 font-semibold ${
             activeTab === "info"
               ? "border-b-2 border-blue-500 text-white"
               : "text-gray-400"
           }`}
         >
-          Informacje
+          <FaInfoCircle />
+          <span>Informacje</span>
         </button>
+
         <button
           onClick={() => setActiveTab("comments")}
-          className={`flex-1 py-2 px-4 text-center font-semibold ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 font-semibold ${
             activeTab === "comments"
               ? "border-b-2 border-blue-500 text-white"
               : "text-gray-400"
           }`}
         >
-          Komentarze ({comments.length})
+          <FaComments />
+          <span>Komentarze ({comments.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("time")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 font-semibold ${
+            activeTab === "time"
+              ? "border-b-2 border-blue-500 text-white"
+              : "text-gray-400"
+          }`}
+        >
+          <FaClock />
+          <span>Rejestracja czasu ({timeEntries.length})</span>
         </button>
       </div>
 
@@ -149,9 +271,12 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
                 Utworzono
               </p>
               <p className="text-gray-200">
-                {new Date(task.createdDate).toLocaleString()}
+                {task.createdDate
+                  ? new Date(task.createdDate).toLocaleString()
+                  : "-"}
               </p>
             </div>
+
             <div>
               <p className="text-gray-300 font-semibold uppercase text-xs tracking-wide">
                 Deadline
@@ -182,6 +307,7 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
                 );
               })()}
             </div>
+
             <div>
               <p className="text-gray-300 font-semibold uppercase text-xs tracking-wide">
                 Priorytet
@@ -192,12 +318,15 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
                 {priority.text}
               </span>
             </div>
+
             <div>
               <p className="text-gray-300 font-semibold uppercase text-xs tracking-wide">
                 Status
               </p>
               <span
-                className={`text-xs font-semibold ${task.isActive ? "text-green-400" : "text-red-400"}`}
+                className={`text-xs font-semibold ${
+                  task.isActive ? "text-green-400" : "text-red-400"
+                }`}
               >
                 {task.isActive ? "Active" : "Inactive"}
               </span>
@@ -239,6 +368,7 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
                   >
                     Usuń przypisanie
                   </button>
+
                   {boardMembers.map((member) => (
                     <button
                       key={member.userId}
@@ -297,6 +427,123 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
             >
               Dodaj
             </button>
+          </form>
+        </div>
+      )}
+
+      {activeTab === "time" && (
+        <div className="flex flex-col gap-4">
+          {timeEntries.length === 0 ? (
+            <p className="text-gray-400 text-sm">Brak wpisów czasu</p>
+          ) : (
+            <div className="overflow-auto">
+              <table className="w-full text-sm text-left text-gray-300 border border-gray-700 rounded-md overflow-hidden">
+                <thead className="bg-gray-700 text-gray-200 uppercase text-xs tracking-wide">
+                  <tr>
+                    <th className="px-3 py-2">Użytkownik</th>
+                    <th className="px-3 py-2">Minuty</th>
+                    <th className="px-3 py-2">Data</th>
+                    <th className="px-3 py-2 text-right">Akcje</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {timeEntries.map((entry) => (
+                    <tr
+                      key={entry.id}
+                      className="border-t border-gray-700 hover:bg-gray-800"
+                    >
+                      <td className="px-3 py-2">{entry.username}</td>
+                      <td className="px-3 py-2">
+                        {formatMinutes(entry.minutesSpent)}
+                      </td>
+                      <td className="px-3 py-2">
+                        {new Date(entry.entryDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <button
+                          onClick={() => {
+                            const newMinutes = prompt(
+                              "Podaj nową liczbę minut:",
+                              String(entry.minutesSpent)
+                            );
+                            const newDate = prompt(
+                              "Podaj nową datę (YYYY-MM-DD):",
+                              entry.entryDate
+                            );
+                            if (newMinutes !== null && newDate !== null) {
+                              handleUpdateEntry(entry.id, {
+                                minutesSpent: Number(newMinutes),
+                                entryDate: newDate,
+                              });
+                            }
+                          }}
+                          className="text-blue-400 hover:text-blue-300 mr-3"
+                        >
+                          Edytuj
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEntry(entry.id)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          Usuń
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <form
+            onSubmit={handleAddEntry}
+            className="bg-gray-800 p-4 rounded-xl shadow-md flex flex-col gap-3 mt-2"
+          >
+            <p className="text-gray-300 font-semibold uppercase text-xs tracking-wide">
+              Dodaj nowy wpis czasu
+            </p>
+            <div className="flex flex-col md:flex-row gap-3 items-center">
+              <div className="flex flex-col flex-1">
+                <label className="text-gray-400 text-xs mb-1">Data</label>
+                <input
+                  type="date"
+                  value={newEntry.entryDate}
+                  onChange={(e) =>
+                    setNewEntry((prev) => ({
+                      ...prev,
+                      entryDate: e.target.value,
+                    }))
+                  }
+                  className="bg-gray-700 border border-gray-600 text-gray-100 rounded-md p-2 focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col w-32">
+                <label className="text-gray-400 text-xs mb-1">Minuty</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={newEntry.minutesSpent}
+                  onChange={(e) =>
+                    setNewEntry((prev) => ({
+                      ...prev,
+                      minutesSpent: e.target.value,
+                    }))
+                  }
+                  className="bg-gray-700 border border-gray-600 text-gray-100 rounded-md p-2 focus:outline-none focus:border-blue-500"
+                  placeholder="np. 60"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition"
+              >
+                Dodaj wpis
+              </button>
+            </div>
           </form>
         </div>
       )}

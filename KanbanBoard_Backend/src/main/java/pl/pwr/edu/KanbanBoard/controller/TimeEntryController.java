@@ -25,8 +25,14 @@ public class TimeEntryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TimeEntryDto>> getTimeEntries(@PathVariable Integer taskId) {
-        return ResponseEntity.ok(timeEntryService.getTimeEntriesForTask(taskId));
+    public ResponseEntity<List<TimeEntryDto>> getTimeEntries(
+            @PathVariable Integer taskId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
+    ) {
+        return ResponseEntity.ok(
+                timeEntryService.getTimeEntries(taskId, year, month)
+        );
     }
 
     @PostMapping

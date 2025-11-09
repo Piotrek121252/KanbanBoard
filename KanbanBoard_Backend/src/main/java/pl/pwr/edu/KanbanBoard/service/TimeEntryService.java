@@ -87,9 +87,19 @@ public class TimeEntryService {
         timeEntryRepository.delete(entry);
     }
 
-    public List<TimeEntryDto> getTimeEntriesForTask(Integer taskId) {
-        Task task = taskService.getTaskEntityById(taskId);
-        return timeEntryMapper.toDtoList(timeEntryRepository.findByTask(task));
+    public List<TimeEntryDto> getTimeEntries(Integer taskId, Integer year, Integer month) {
+        List<TimeEntry> entries;
+
+        if (year != null && month != null) {
+            LocalDate startDate = LocalDate.of(year, month, 1);
+            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+            entries = timeEntryRepository.findByTaskIdAndEntryDateBetween(taskId, startDate, endDate);
+        } else {
+            entries = timeEntryRepository.findByTaskId(taskId);
+        }
+
+        return entries.stream().map(timeEntryMapper::apply).toList();
     }
+
 }
 
