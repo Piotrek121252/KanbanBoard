@@ -6,10 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardAccessDeniedException;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.ColumnNotFoundException;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.IllegalBoardRoleException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.*;
 
 import java.util.Date;
 
@@ -61,6 +58,15 @@ public class GlobalExceptionHandler {
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorObject);
+    }
+
+    @ExceptionHandler(TimeEntryNotFoundException.class)
+    public ResponseEntity<ErrorObject> handleTimeEntryNotFound(TimeEntryNotFoundException ex) {
+        ErrorObject error = new ErrorObject();
+        error.setStatusCode(HttpStatus.NOT_FOUND.value());
+        error.setMessage(ex.getMessage());
+        error.setTimestamp(new Date());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
