@@ -381,6 +381,7 @@ const KanbanBoard = () => {
         task={previewTask}
         isOpen={!!previewTask}
         onClose={() => setPreviewTask(null)}
+        boardMembers={boardData?.members || []}
       />
       <ColumnAddModal
         boardId={boardId}

@@ -22,7 +22,9 @@ public class TaskMapper implements Function<Task, TaskDto> {
                 task.getIsActive(),
                 task.getCreatedDate(),
                 task.getDueDate(),
-                task.getPriority()
+                task.getPriority(),
+                task.getAssignedUser() != null ? task.getAssignedUser().getId() : null,
+                task.getAssignedUser() != null ? task.getAssignedUser().getUsername() : null
         );
     }
 

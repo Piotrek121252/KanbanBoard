@@ -13,5 +13,7 @@ public record TaskDto(
         Boolean isActive,
         LocalDateTime createdDate,
         LocalDateTime dueDate,
-        TaskPriority priority
+        TaskPriority priority,
+        Integer assignedUserId,
+        String assignedUsername
 ) {}

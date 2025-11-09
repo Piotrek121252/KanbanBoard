@@ -1,14 +1,12 @@
 package pl.pwr.edu.KanbanBoard.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-import pl.pwr.edu.KanbanBoard.dto.task.ChangeTaskPositionRequest;
-import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskRequest;
-import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
-import pl.pwr.edu.KanbanBoard.dto.task.UpdateTaskStatusRequest;
+import pl.pwr.edu.KanbanBoard.dto.task.*;
 import pl.pwr.edu.KanbanBoard.service.TaskService;
 
 import java.util.List;
@@ -67,4 +65,16 @@ public class TaskController {
         TaskDto taskDto = taskService.moveTask(taskId, request);
         return ResponseEntity.ok(taskDto);
     }
+
+    @PatchMapping("/{taskId}/assign")
+    public ResponseEntity<TaskDto> assignOrUnassignUser(
+            @PathVariable Integer taskId,
+            @RequestBody AssignUserRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(
+                taskService.assignOrUnassignUser(taskId, request.userId(), user.getUsername())
+        );
+    }
+
 }

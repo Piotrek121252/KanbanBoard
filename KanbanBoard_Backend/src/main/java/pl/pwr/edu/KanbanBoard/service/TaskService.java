@@ -5,9 +5,7 @@ import pl.pwr.edu.KanbanBoard.dto.task.ChangeTaskPositionRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.CreateTaskRequest;
 import pl.pwr.edu.KanbanBoard.dto.task.TaskDto;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.TaskNotFoundException;
-import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
-import pl.pwr.edu.KanbanBoard.model.Task;
-import pl.pwr.edu.KanbanBoard.model.TaskPriority;
+import pl.pwr.edu.KanbanBoard.model.*;
 import pl.pwr.edu.KanbanBoard.repository.TaskRepository;
 import pl.pwr.edu.KanbanBoard.service.mapper.TaskMapper;
 
@@ -18,15 +16,16 @@ import java.util.List;
 public class TaskService {
 
     private static final int POSITION_GAP = 65536;
-
     private final TaskRepository taskRepository;
     private final ColumnService columnService;
     private final TaskMapper taskMapper;
+    private final UserService userService;
 
-    public TaskService(TaskRepository taskRepository, ColumnService columnService, TaskMapper taskMapper) {
+    public TaskService(TaskRepository taskRepository, ColumnService columnService, TaskMapper taskMapper, UserService userService) {
         this.taskRepository = taskRepository;
         this.columnService = columnService;
         this.taskMapper = taskMapper;
+        this.userService = userService;
     }
 
     public List<TaskDto> getTasksByColumnId(Integer columnId) {
@@ -96,6 +95,16 @@ public class TaskService {
             newIndex = tasks.size();
         }
 
+        int newPos = calculateTaskPosition(newIndex, tasks);
+
+        task.setColumn(column);
+        task.setPosition(newPos);
+
+        Task saved = taskRepository.save(task);
+        return taskMapper.apply(saved);
+    }
+
+    private static int calculateTaskPosition(Integer newIndex, List<Task> tasks) {
         Task prev = newIndex == 0 ? null : tasks.get(newIndex - 1);
         Task next = newIndex >= tasks.size() ? null : tasks.get(newIndex);
 
@@ -109,12 +118,7 @@ public class TaskService {
         } else {
             newPos = (prev.getPosition() + next.getPosition()) / 2;
         }
-
-        task.setColumn(column);
-        task.setPosition(newPos);
-
-        Task saved = taskRepository.save(task);
-        return taskMapper.apply(saved);
+        return newPos;
     }
 
     public TaskDto updateTaskActive(Integer taskId, Boolean isActive) {
@@ -125,6 +129,34 @@ public class TaskService {
 
         return taskMapper.apply(saved);
     }
+
+    public TaskDto assignOrUnassignUser(Integer taskId, Integer userId, String actorUsername) {
+        Task task = getTaskEntityById(taskId);
+        // TODO: weryfikacja uprawnień
+        // UserEntity actor = userService.getUserByUsername(actorUsername);
+
+        if (userId == null) {
+            task.setAssignedUser(null);
+        } else {
+            UserEntity assignedUser = userService.getUserByUserId(userId);
+
+            ColumnEntity column = task.getColumn();
+            Board board = column.getBoard();
+
+            boolean isMember = board.getBoardMembers().stream()
+                    .anyMatch(m -> m.getUser().getId().equals(assignedUser.getId()));
+
+            if (!isMember) {
+                throw new IllegalArgumentException("Przypisany użytkownik musi być członkiem tablicy.");
+            }
+
+            task.setAssignedUser(assignedUser);
+        }
+
+        Task saved = taskRepository.save(task);
+        return taskMapper.apply(saved);
+    }
+
 
     public void deleteTask(Integer taskId) {
         Task task = getTaskEntityById(taskId);

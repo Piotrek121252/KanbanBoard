@@ -40,6 +40,10 @@ public class UserEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "assigned_user_id")
+    private UserEntity assignedUser;
+
     @ManyToMany
     @JoinTable(
             name = "user_favorite_boards",

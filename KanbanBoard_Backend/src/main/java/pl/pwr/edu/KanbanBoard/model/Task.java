@@ -38,15 +38,19 @@ public class Task {
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
-
     @Column(name = "due_date")
     private LocalDateTime dueDate;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private TaskPriority priority = TaskPriority.MEDIUM;
+
+    @ManyToOne
+    @JoinColumn(name = "assigned_user_id")
+    private UserEntity assignedUser;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();

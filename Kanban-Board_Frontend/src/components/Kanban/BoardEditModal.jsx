@@ -169,7 +169,7 @@ const BoardEditModal = ({ board, isOpen, onClose, onEdit }) => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-semibold text-gray-200">
-                        {member.username.slice(0, 2).toUpperCase()}
+                        {member.username[0].toUpperCase()}
                       </div>
                       <div>
                         <p className="text-gray-100 font-medium">
@@ -232,7 +232,7 @@ const BoardEditModal = ({ board, isOpen, onClose, onEdit }) => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-semibold text-gray-200">
-                          {user.username.slice(0, 2).toUpperCase()}
+                          {user.username[0].toUpperCase()}
                         </div>
                         <div>
                           <p className="text-gray-100 font-medium">
