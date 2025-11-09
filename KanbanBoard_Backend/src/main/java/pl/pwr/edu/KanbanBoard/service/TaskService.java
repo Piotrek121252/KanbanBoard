@@ -16,6 +16,7 @@ import java.util.List;
 public class TaskService {
 
     private static final int POSITION_GAP = 65536;
+    private static final int MIN_GAP = 10;
     private final TaskRepository taskRepository;
     private final ColumnService columnService;
     private final TaskMapper taskMapper;
@@ -95,13 +96,46 @@ public class TaskService {
             newIndex = tasks.size();
         }
 
-        int newPos = calculateTaskPosition(newIndex, tasks);
+        Task prev = newIndex == 0 ? null : tasks.get(newIndex - 1);
+        Task next = newIndex >= tasks.size() ? null : tasks.get(newIndex);
+
+        int newPos;
+        if (prev == null && next == null) {
+            newPos = POSITION_GAP;
+        } else if (prev == null) {
+            newPos = next.getPosition() / 2;
+            if (newPos < MIN_GAP) {
+                tasks.add(newIndex, task);
+                normalizeColumnPositions(tasks);
+                newPos = tasks.get(newIndex).getPosition();
+                tasks.remove(task);
+            }
+        } else if (next == null) {
+            newPos = prev.getPosition() + POSITION_GAP;
+        } else {
+            newPos = (prev.getPosition() + next.getPosition()) / 2;
+            if ((next.getPosition() - prev.getPosition()) <= MIN_GAP) {
+                tasks.add(newIndex, task);
+                normalizeColumnPositions(tasks);
+                newPos = tasks.get(newIndex).getPosition();
+                tasks.remove(task);
+            }
+        }
 
         task.setColumn(column);
         task.setPosition(newPos);
 
         Task saved = taskRepository.save(task);
         return taskMapper.apply(saved);
+    }
+
+    private void normalizeColumnPositions(List<Task> tasks) {
+        int pos = POSITION_GAP;
+        for (Task t : tasks) {
+            t.setPosition(pos);
+            pos += POSITION_GAP;
+        }
+        taskRepository.saveAll(tasks);
     }
 
     private static int calculateTaskPosition(Integer newIndex, List<Task> tasks) {

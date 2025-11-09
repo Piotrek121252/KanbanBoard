@@ -21,7 +21,7 @@ import ColumnEditModal from "../components/Kanban/ColumnEditModal";
 import { useParams } from "react-router-dom";
 import { FaCog } from "react-icons/fa";
 import { COLUMN_COLORS } from "../constants/columnColors";
-import BoardEditModal from "../components/BoardsPage/BoardEditModal";
+import BoardEditModal from "../components/Kanban/BoardEditModal";
 
 const KanbanBoard = () => {
   const { id: boardId } = useParams();
@@ -279,15 +279,24 @@ const KanbanBoard = () => {
           <h1 className="text-2xl font-semibold">
             {boardName || "Ładowanie tablicy..."}
           </h1>
+
           {boardData && (
-            <span
-              className={`text-xs font-semibold px-2 py-0.5 rounded-full border border-gray-600 bg-gray-800 text-gray-300`}
-              title={
-                boardData.isPublic ? "Publiczna tablica" : "Prywatna tablica"
-              }
-            >
-              {boardData.isPublic ? "Publiczna" : "Prywatna"}
-            </span>
+            <>
+              <span
+                className={`text-xs font-semibold px-2 py-0.5 rounded-full border border-gray-600 bg-gray-800 text-gray-300`}
+                title={
+                  boardData.isPublic ? "Publiczna tablica" : "Prywatna tablica"
+                }
+              >
+                {boardData.isPublic ? "Publiczna" : "Prywatna"}
+              </span>
+
+              {boardData.members?.length > 0 && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-600 text-white">
+                  Members: {boardData.members.length}
+                </span>
+              )}
+            </>
           )}
         </div>
         <div className="flex gap-2">
