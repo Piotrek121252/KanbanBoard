@@ -12,6 +12,7 @@ import pl.pwr.edu.KanbanBoard.service.mapper.TimeEntryMapper;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -145,6 +146,7 @@ public class TimeEntryService {
                     String username = entry.getValue().get(0).getUser().getUsername();
 
                     List<TimeEntryDto> entryDtos = entry.getValue().stream()
+                            .sorted(Comparator.comparing(TimeEntry::getEntryDate))
                             .map(timeEntryMapper::apply)
                             .toList();
 
