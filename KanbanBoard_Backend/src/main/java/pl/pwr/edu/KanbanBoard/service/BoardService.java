@@ -54,7 +54,7 @@ public class BoardService {
         return boardMapper.toDto(board, user);
     }
 
-    public Board getBoardEntityById(Integer id) {
+    Board getBoardEntityById(Integer id) {
         return boardRepository.findById(id)
                 .orElseThrow(() -> new BoardNotFoundException("Nie znaleziono tablicy z id: " + id));
     }

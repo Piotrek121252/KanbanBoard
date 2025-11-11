@@ -18,8 +18,8 @@ import TaskAddModal from "../components/Kanban/TaskAddModal";
 import TaskPreviewModal from "../components/Kanban/TaskPreviewModal";
 import ColumnAddModal from "../components/Kanban/ColumnAddModal";
 import ColumnEditModal from "../components/Kanban/ColumnEditModal";
-import { useParams } from "react-router-dom";
-import { FaCog } from "react-icons/fa";
+import { useNavigate, useParams } from "react-router-dom";
+import { FaCog, FaClock } from "react-icons/fa";
 import { COLUMN_COLORS } from "../constants/columnColors";
 import BoardEditModal from "../components/Kanban/BoardEditModal";
 
@@ -38,6 +38,7 @@ const KanbanBoard = () => {
   const [isEditColumnOpen, setIsEditColumnOpen] = useState(false);
   const [isBoardSettingsOpen, setIsBoardSettingsOpen] = useState(false);
   const [boardData, setBoardData] = useState(null);
+  const navigate = useNavigate();
 
   const fetchBoardData = useCallback(async () => {
     try {
@@ -311,6 +312,13 @@ const KanbanBoard = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-4 font-medium transition"
           >
             + Dodaj zadanie
+          </button>
+          <button
+            onClick={() => navigate(`/boards/${boardId}/time-summary`)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-4 font-medium transition"
+          >
+            <FaClock />
+            <span>Podsumowanie czasu</span>
           </button>
           <button
             onClick={() => setIsBoardSettingsOpen(true)}

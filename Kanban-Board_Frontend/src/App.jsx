@@ -7,6 +7,7 @@ import Register from "./routes/Register";
 import Navbar from "./components/Navbar";
 import BoardsPage from "./routes/BoardsPage";
 import KanbanBoard from "./routes/KanbanBoard";
+import TimeSummaryPage from "./routes/TimeSummaryPage";
 
 function App() {
   return (
@@ -17,6 +18,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/boards" element={<BoardsPage />} />
           <Route path="/boards/:id/kanban" element={<KanbanBoard />} />
+          <Route
+            path="/boards/:id/time-summary"
+            element={<TimeSummaryPage />}
+          />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

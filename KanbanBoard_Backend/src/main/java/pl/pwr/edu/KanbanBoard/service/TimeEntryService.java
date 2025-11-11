@@ -3,16 +3,18 @@ package pl.pwr.edu.KanbanBoard.service;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.timeEntry.CreateTimeEntryRequest;
 import pl.pwr.edu.KanbanBoard.dto.timeEntry.TimeEntryDto;
+import pl.pwr.edu.KanbanBoard.dto.timeEntry.TimeEntrySummaryDto;
 import pl.pwr.edu.KanbanBoard.dto.timeEntry.UpdateTimeEntryRequest;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.TimeEntryNotFoundException;
-import pl.pwr.edu.KanbanBoard.model.Task;
-import pl.pwr.edu.KanbanBoard.model.TimeEntry;
-import pl.pwr.edu.KanbanBoard.model.UserEntity;
+import pl.pwr.edu.KanbanBoard.model.*;
 import pl.pwr.edu.KanbanBoard.repository.TimeEntryRepository;
 import pl.pwr.edu.KanbanBoard.service.mapper.TimeEntryMapper;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class TimeEntryService {
@@ -20,16 +22,19 @@ public class TimeEntryService {
     private final TimeEntryRepository timeEntryRepository;
     private final TaskService taskService;
     private final UserService userService;
+    private final BoardService boardService;
     private final TimeEntryMapper timeEntryMapper;
 
     public TimeEntryService(TimeEntryRepository timeEntryRepository,
                             TaskService taskService,
                             UserService userService,
+                            BoardService boardService,
                             TimeEntryMapper timeEntryMapper) {
         this.timeEntryRepository = timeEntryRepository;
         this.taskService = taskService;
         this.userService = userService;
         this.timeEntryMapper = timeEntryMapper;
+        this.boardService = boardService;
     }
 
     public TimeEntryDto addTimeEntry(Integer taskId, CreateTimeEntryRequest request, String username) {
@@ -101,5 +106,49 @@ public class TimeEntryService {
         return entries.stream().map(timeEntryMapper::apply).toList();
     }
 
+    public List<TimeEntrySummaryDto> getMonthlyBoardSummary(Integer boardId, Integer userId, int month, int year) {
+        Board board = boardService.getBoardEntityById(boardId);
+        List<TimeEntrySummaryDto> summary = new ArrayList<>();
+
+        for (ColumnEntity column : board.getColumns()) {
+            for (Task task : column.getTasks()) {
+                LocalDate startDate = LocalDate.of(year, month, 1);
+                LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+                List<TimeEntry> entries = timeEntryRepository.findByTaskIdAndEntryDateBetween(task.getId(), startDate, endDate);
+
+                if (userId != null) {
+                    entries = entries.stream()
+                            .filter(e -> e.getUser().getId().equals(userId))
+                            .toList();
+                }
+
+                Map<Integer, List<TimeEntry>> entriesByUser = entries.stream()
+                        .collect(Collectors.groupingBy(e -> e.getUser().getId()));
+
+                for (Map.Entry<Integer, List<TimeEntry>> entry : entriesByUser.entrySet()) {
+                    int totalMinutes = entry.getValue().stream()
+                            .mapToInt(TimeEntry::getMinutesSpent)
+                            .sum();
+
+                    String username = entry.getValue().get(0).getUser().getUsername();
+
+                    List<TimeEntryDto> entryDtos = entry.getValue().stream()
+                            .map(timeEntryMapper::apply)
+                            .toList();
+
+                    summary.add(new TimeEntrySummaryDto(
+                            task.getId(),
+                            task.getName(),
+                            entry.getKey(),
+                            username,
+                            totalMinutes,
+                            entryDtos
+                    ));
+                }
+            }
+        }
+
+        return summary;
+    }
 }
 

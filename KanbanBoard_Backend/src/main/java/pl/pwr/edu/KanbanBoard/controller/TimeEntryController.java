@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import pl.pwr.edu.KanbanBoard.dto.timeEntry.CreateTimeEntryRequest;
 import pl.pwr.edu.KanbanBoard.dto.timeEntry.TimeEntryDto;
+import pl.pwr.edu.KanbanBoard.dto.timeEntry.TimeEntrySummaryDto;
 import pl.pwr.edu.KanbanBoard.dto.timeEntry.UpdateTimeEntryRequest;
 import pl.pwr.edu.KanbanBoard.service.TimeEntryService;
 
