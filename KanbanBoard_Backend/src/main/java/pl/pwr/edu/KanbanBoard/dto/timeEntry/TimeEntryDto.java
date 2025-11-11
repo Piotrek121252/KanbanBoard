@@ -8,5 +8,6 @@ public record TimeEntryDto(
         Integer userId,
         String username,
         int minutesSpent,
+        boolean isOvertime,
         LocalDate entryDate
 ) {}

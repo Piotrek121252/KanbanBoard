@@ -51,6 +51,7 @@ public class TimeEntryService {
         entry.setTask(task);
         entry.setUser(user);
         entry.setMinutesSpent(request.minutesSpent());
+        entry.setOvertime(request.isOvertime());
         entry.setEntryDate(request.entryDate() != null ? request.entryDate() : LocalDate.now());
 
         return timeEntryMapper.apply(timeEntryRepository.save(entry));
@@ -70,6 +71,7 @@ public class TimeEntryService {
         }
 
         entry.setMinutesSpent(request.minutesSpent());
+        entry.setOvertime(request.isOvertime());
         entry.setEntryDate(request.entryDate());
 
         TimeEntry saved = timeEntryRepository.save(entry);
@@ -130,6 +132,16 @@ public class TimeEntryService {
                             .mapToInt(TimeEntry::getMinutesSpent)
                             .sum();
 
+                    int regularMinutes = entry.getValue().stream()
+                            .filter(e -> !e.isOvertime())
+                            .mapToInt(TimeEntry::getMinutesSpent)
+                            .sum();
+
+                    int overtimeMinutes = entry.getValue().stream()
+                            .filter(TimeEntry::isOvertime)
+                            .mapToInt(TimeEntry::getMinutesSpent)
+                            .sum();
+
                     String username = entry.getValue().get(0).getUser().getUsername();
 
                     List<TimeEntryDto> entryDtos = entry.getValue().stream()
@@ -142,6 +154,8 @@ public class TimeEntryService {
                             entry.getKey(),
                             username,
                             totalMinutes,
+                            regularMinutes,
+                            overtimeMinutes,
                             entryDtos
                     ));
                 }

@@ -23,6 +23,7 @@ public class TimeEntryMapper implements Function<TimeEntry, TimeEntryDto> {
                 entry.getUser().getId(),
                 entry.getUser().getUsername(),
                 entry.getMinutesSpent(),
+                entry.isOvertime(),
                 entry.getEntryDate()
         );
     }

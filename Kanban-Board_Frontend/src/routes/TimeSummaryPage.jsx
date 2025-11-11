@@ -55,7 +55,7 @@ const TimeSummaryPage = ({ boardMembers }) => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 pt-20 bg-gray-900 min-h-screen">
       <button
         onClick={() => navigate(`/boards/${boardId}/kanban`)}
         className="mb-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
@@ -113,50 +113,79 @@ const TimeSummaryPage = ({ boardMembers }) => {
           <table className="w-full text-sm text-left text-gray-300 min-w-[640px] border border-gray-700 rounded-md overflow-hidden">
             <thead className="bg-gray-700 text-gray-200 uppercase text-xs tracking-wide">
               <tr>
-                <th className="px-3 py-2"> </th>
-                <th className="px-3 py-2">Użytkownik</th>
                 <th className="px-3 py-2">Zadanie</th>
+                <th className="px-3 py-2">Użytkownik</th>
                 <th className="px-3 py-2">Łączny czas</th>
+                <th className="px-3 py-2 text-right">Szczegóły</th>
               </tr>
             </thead>
             <tbody>
-              {summary.map((entry) => {
-                const key = `${entry.taskId}-${entry.userId}`;
-                const expanded = expandedRows[key];
-                return (
-                  <React.Fragment key={key}>
-                    <tr
-                      className="border-t border-gray-700 hover:bg-gray-800 cursor-pointer"
-                      onClick={() => toggleRow(entry.taskId, entry.userId)}
-                    >
-                      <td className="px-3 py-2">
-                        {expanded ? <FaChevronDown /> : <FaChevronRight />}
-                      </td>
-                      <td className="px-3 py-2">{entry.username}</td>
-                      <td className="px-3 py-2">{entry.taskName}</td>
-                      <td className="px-3 py-2">
-                        {formatTime(entry.totalMinutesSpent)}
-                      </td>
+              {summary
+                .reduce((acc, entry) => {
+                  // Group by task
+                  const taskGroup = acc.find((t) => t.taskId === entry.taskId);
+                  if (taskGroup) {
+                    taskGroup.users.push(entry);
+                  } else {
+                    acc.push({
+                      taskId: entry.taskId,
+                      taskName: entry.taskName,
+                      users: [entry],
+                    });
+                  }
+                  return acc;
+                }, [])
+                .map((task) => (
+                  <React.Fragment key={task.taskId}>
+                    <tr className="bg-gray-800 font-semibold">
+                      <td className="px-3 py-2">{task.taskName}</td>
+                      <td className="px-3 py-2" colSpan={3}></td>
                     </tr>
-                    {expanded &&
-                      entry.entries.map((e) => (
-                        <tr
-                          key={e.id}
-                          className="bg-gray-800 border-t border-gray-700"
-                        >
-                          <td></td>
-                          <td className="px-3 py-2"></td>
-                          <td className="px-3 py-2 text-sm text-gray-400">
-                            {new Date(e.entryDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-3 py-2 text-sm text-gray-400">
-                            {formatTime(e.minutesSpent)}
-                          </td>
-                        </tr>
-                      ))}
+                    {task.users.map((userEntry) => {
+                      const key = `${task.taskId}-${userEntry.userId}`;
+                      const expanded = expandedRows[key];
+                      return (
+                        <React.Fragment key={key}>
+                          <tr
+                            className="border-t border-gray-700 hover:bg-gray-800 cursor-pointer"
+                            onClick={() =>
+                              toggleRow(task.taskId, userEntry.userId)
+                            }
+                          >
+                            <td></td>
+                            <td className="px-3 py-2">{userEntry.username}</td>
+                            <td className="px-3 py-2">
+                              {formatTime(userEntry.totalMinutesSpent)}
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              {expanded ? (
+                                <FaChevronDown />
+                              ) : (
+                                <FaChevronRight />
+                              )}
+                            </td>
+                          </tr>
+                          {expanded &&
+                            userEntry.entries.map((e) => (
+                              <tr
+                                key={e.id}
+                                className="bg-gray-800 border-t border-gray-700 text-sm text-gray-400"
+                              >
+                                <td></td>
+                                <td></td>
+                                <td className="px-3 py-2">
+                                  {formatTime(e.minutesSpent)}
+                                </td>
+                                <td className="px-3 py-2">
+                                  {new Date(e.entryDate).toLocaleDateString()}
+                                </td>
+                              </tr>
+                            ))}
+                        </React.Fragment>
+                      );
+                    })}
                   </React.Fragment>
-                );
-              })}
+                ))}
             </tbody>
           </table>
         </div>

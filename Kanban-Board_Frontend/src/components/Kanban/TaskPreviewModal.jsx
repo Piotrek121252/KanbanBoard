@@ -25,6 +25,7 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
   const [newEntry, setNewEntry] = useState({
     minutesSpent: "",
     entryDate: "",
+    isOvertime: false,
   });
   const [activeTab, setActiveTab] = useState("info");
   const [showAssignList, setShowAssignList] = useState(false);
@@ -56,7 +57,9 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
         `http://localhost:8080/api/tasks/${task.id}/time-entries?year=${year}&month=${month}`,
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
-      setTimeEntries(res.data);
+      setTimeEntries(
+        res.data.sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
+      );
     } catch (err) {
       console.error("Błąd przy pobieraniu wpisów czasu", err);
       setTimeEntries([]);
@@ -141,14 +144,19 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
       const payload = {
         minutesSpent: Number(newEntry.minutesSpent),
         entryDate: newEntry.entryDate,
+        isOvertime: newEntry.isOvertime,
       };
       const res = await axios.post(
         `http://localhost:8080/api/tasks/${task.id}/time-entries`,
         payload,
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
-      setTimeEntries((prev) => [...prev, res.data]);
-      setNewEntry({ minutesSpent: "", entryDate: "" });
+      setTimeEntries((prev) =>
+        [...prev, res.data].sort(
+          (a, b) => new Date(b.entryDate) - new Date(a.entryDate)
+        )
+      );
+      setNewEntry({ minutesSpent: "", entryDate: "", isOvertime: false });
     } catch (err) {
       console.error("Nie udało się dodać wpisu czasu", err);
       alert("Nie udało się dodać wpisu czasu");
@@ -167,6 +175,7 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
         {
           minutesSpent: Number(updated.minutesSpent),
           entryDate: updated.entryDate,
+          isOvertime: updated.isOvertime,
         },
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
@@ -215,7 +224,12 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={task.name}>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={task.name}
+      width="45rem"
+    >
       <div className="flex border-b border-gray-700 mb-4">
         <button
           onClick={() => setActiveTab("info")}
@@ -436,14 +450,15 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
           {timeEntries.length === 0 ? (
             <p className="text-gray-400 text-sm">Brak wpisów czasu</p>
           ) : (
-            <div className="overflow-auto">
-              <table className="w-full text-sm text-left text-gray-300 border border-gray-700 rounded-md overflow-hidden">
-                <thead className="bg-gray-700 text-gray-200 uppercase text-xs tracking-wide">
+            <div className="overflow-auto max-h-80 rounded-md border border-gray-700">
+              <table className="w-full text-sm text-left text-gray-300 border-collapse">
+                <thead className="bg-gray-700 text-gray-200 uppercase text-xs tracking-wide sticky top-0 z-10">
                   <tr>
                     <th className="px-3 py-2">Użytkownik</th>
-                    <th className="px-3 py-2">Minuty</th>
+                    <th className="px-3 py-2">Czas pracy</th>
+                    <th className="px-3 py-2">Typ pracy</th>
                     <th className="px-3 py-2">Data</th>
-                    <th className="px-3 py-2 text-right">Akcje</th>
+                    <th className="px-3 py-2 text-center">Akcje</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -457,9 +472,20 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
                         {formatMinutes(entry.minutesSpent)}
                       </td>
                       <td className="px-3 py-2">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                            entry.isOvertime
+                              ? "bg-yellow-500 text-gray-900"
+                              : "bg-green-600 text-white"
+                          }`}
+                        >
+                          {entry.isOvertime ? "Nadgodziny" : "Normalny"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
                         {new Date(entry.entryDate).toLocaleDateString()}
                       </td>
-                      <td className="px-3 py-2 text-right">
+                      <td className="px-3 py-2 flex gap-2 items-center">
                         <button
                           onClick={() => {
                             const newMinutes = prompt(
@@ -477,13 +503,14 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
                               });
                             }
                           }}
-                          className="text-blue-400 hover:text-blue-300 mr-3"
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1 text-sm font-semibold transition"
                         >
                           Edytuj
                         </button>
+
                         <button
                           onClick={() => handleDeleteEntry(entry.id)}
-                          className="text-red-400 hover:text-red-300"
+                          className="w-full bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1 text-sm font-semibold transition"
                         >
                           Usuń
                         </button>
@@ -497,14 +524,15 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
 
           <form
             onSubmit={handleAddEntry}
-            className="bg-gray-800 p-4 rounded-xl shadow-md flex flex-col gap-3 mt-2"
+            className="bg-gray-800 p-6 rounded-xl shadow-md flex flex-col gap-4 mt-4"
           >
             <p className="text-gray-300 font-semibold uppercase text-xs tracking-wide">
               Dodaj nowy wpis czasu
             </p>
-            <div className="flex flex-col md:flex-row gap-3 items-center">
+
+            <div className="flex flex-col md:flex-row gap-4 items-center">
               <div className="flex flex-col flex-1">
-                <label className="text-gray-400 text-xs mb-1">Data</label>
+                <label className="text-gray-400 text-xs mb-1">Dzień</label>
                 <input
                   type="date"
                   value={newEntry.entryDate}
@@ -537,13 +565,34 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
                 />
               </div>
 
-              <button
-                type="submit"
-                className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition"
-              >
-                Dodaj wpis
-              </button>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={newEntry.isOvertime}
+                  onChange={(e) =>
+                    setNewEntry((prev) => ({
+                      ...prev,
+                      isOvertime: e.target.checked,
+                    }))
+                  }
+                  id="overtime-checkbox"
+                  className="accent-yellow-400 w-4 h-4"
+                />
+                <label
+                  htmlFor="overtime-checkbox"
+                  className="text-gray-300 text-sm"
+                >
+                  Nadgodziny
+                </label>
+              </div>
             </div>
+
+            <button
+              type="submit"
+              className="w-full px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition"
+            >
+              Dodaj wpis
+            </button>
           </form>
         </div>
       )}

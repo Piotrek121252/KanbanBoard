@@ -7,6 +7,8 @@ public record TimeEntrySummaryDto(
         String taskName,
         Integer userId,
         String username,
-        int totalMinutesSpent,
+        Integer totalMinutesSpent,
+        Integer regularMinutesSpent,
+        Integer overtimeMinutesSpent,
         List<TimeEntryDto> entries
 ) {}

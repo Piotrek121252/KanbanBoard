@@ -4,5 +4,6 @@ import java.time.LocalDate;
 
 public record CreateTimeEntryRequest(
         Integer minutesSpent,
+        boolean isOvertime,
         LocalDate entryDate
 ) {}

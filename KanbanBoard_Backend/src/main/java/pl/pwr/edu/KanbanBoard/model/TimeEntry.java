@@ -31,6 +31,9 @@ public class TimeEntry {
     @Column(nullable = false)
     private int minutesSpent;
 
+    @Column(nullable = false)
+    private boolean isOvertime;
+
     @Column(name = "entry_date", nullable = false)
     private LocalDate entryDate;
 }
