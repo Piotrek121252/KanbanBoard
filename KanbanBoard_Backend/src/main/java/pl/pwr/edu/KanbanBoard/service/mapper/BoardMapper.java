@@ -14,7 +14,8 @@ import java.util.stream.Collectors;
 @Component
 public class BoardMapper {
     public BoardDto toDto(Board board, UserEntity currentUser) {
-        boolean isFavorite = currentUser != null && currentUser.getFavoriteBoards().contains(board);
+        boolean isFavorite = currentUser != null && currentUser.getFavoriteBoards().stream()
+                .anyMatch(fav -> fav.getBoard().getId().equals(board.getId()));
 
         List<BoardMemberDto> members = board.getBoardMembers().stream()
                 .map(member -> new BoardMemberDto(

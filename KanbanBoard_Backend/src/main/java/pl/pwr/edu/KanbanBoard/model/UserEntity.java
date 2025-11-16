@@ -44,13 +44,8 @@ public class UserEntity {
     @JoinColumn(name = "assigned_user_id")
     private UserEntity assignedUser;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_favorite_boards",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "board_id")
-    )
-    private List<Board> favoriteBoards = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserFavoriteBoard> favoriteBoards = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardMember> boardMembership = new ArrayList<>();

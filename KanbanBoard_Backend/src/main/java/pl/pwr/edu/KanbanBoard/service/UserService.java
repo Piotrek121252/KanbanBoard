@@ -12,10 +12,7 @@ import pl.pwr.edu.KanbanBoard.dto.authentication.AuthResponseDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.LoginRequestDto;
 import pl.pwr.edu.KanbanBoard.dto.authentication.RegisterRequestDto;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
-import pl.pwr.edu.KanbanBoard.model.Board;
-import pl.pwr.edu.KanbanBoard.model.BoardMember;
-import pl.pwr.edu.KanbanBoard.model.Role;
-import pl.pwr.edu.KanbanBoard.model.UserEntity;
+import pl.pwr.edu.KanbanBoard.model.*;
 import pl.pwr.edu.KanbanBoard.repository.BoardMemberRepository;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
 import pl.pwr.edu.KanbanBoard.repository.RoleRepository;
@@ -94,18 +91,29 @@ public class UserService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BoardNotFoundException("Nie znaleziono tablicy"));
 
-        if (!user.getFavoriteBoards().contains(board)) {
-            user.getFavoriteBoards().add(board);
+        boolean alreadyFavorited = user.getFavoriteBoards().stream()
+                .anyMatch(fav -> fav.getBoard().getId().equals(boardId));
+
+        if (!alreadyFavorited) {
+            UserFavoriteBoard favorite = new UserFavoriteBoard();
+            favorite.setUser(user);
+            favorite.setBoard(board);
+            favorite.setId(new UserFavoriteBoardId(user.getId(), board.getId()));
+
+            user.getFavoriteBoards().add(favorite);
             userRepository.save(user);
         }
     }
 
+
     public void removeFavoriteBoard(String username, Integer boardId) {
         UserEntity user = getUserByUsername(username);
-        Board board = boardRepository.findById(boardId)
+        // Sprawdzamy czy instnieje taka tablica
+        boardRepository.findById(boardId)
                 .orElseThrow(() -> new BoardNotFoundException("Nie znaleziono tablicy"));
 
-        user.getFavoriteBoards().remove(board);
+        user.getFavoriteBoards().removeIf(fav -> fav.getBoard().getId().equals(boardId));
+
         userRepository.save(user);
     }
 

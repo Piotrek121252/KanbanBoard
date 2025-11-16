@@ -7,6 +7,7 @@ import pl.pwr.edu.KanbanBoard.dto.board.UpdateBoardRequest;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardAccessDeniedException;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.IllegalBoardRoleException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.InsufficientBoardRoleException;
 import pl.pwr.edu.KanbanBoard.model.*;
 import pl.pwr.edu.KanbanBoard.repository.BoardMemberRepository;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
@@ -80,11 +81,13 @@ public class BoardService {
         return boardMapper.toDto(saved, currentUser);
     }
 
-    public void deleteBoard(Integer id) {
-        if (!boardRepository.existsById(id)) {
-            throw new BoardNotFoundException("Board not found with id: " + id);
-        }
-        boardRepository.deleteById(id);
+    public void deleteBoard(Integer boardId, String username) {
+        Board board = getBoardEntityById(boardId);
+        UserEntity user = userService.getUserByUsername(username);
+
+        requireRole(board, user, BoardRole.ADMIN);
+
+        boardRepository.deleteById(boardId);
     }
 
     public BoardDto updateBoard(Integer boardId, UpdateBoardRequest request, String actorUsername) {
@@ -163,9 +166,10 @@ public class BoardService {
     public void requireRole(Board board, UserEntity user, BoardRole minimumRole) {
         BoardMember member = getMembership(board, user);
         if (member.getRole().ordinal() > minimumRole.ordinal()) {
-            throw new BoardAccessDeniedException("Użytkownik nie ma odpowiednich uprawnień do wykonania tej czynności");
+            throw new InsufficientBoardRoleException(minimumRole, member.getRole());
         }
     }
+
 
     BoardRole parseBoardRole(String roleName) {
         try {

@@ -51,6 +51,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorObject);
     }
 
+    @ExceptionHandler(InsufficientBoardRoleException.class)
+    public ResponseEntity<ErrorObject> handleInsufficientRole(InsufficientBoardRoleException ex) {
+        ErrorObject error = new ErrorObject();
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setMessage(ex.getMessage());
+        error.setTimestamp(new Date());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(BoardAccessDeniedException.class)
     public ResponseEntity<ErrorObject> handleBoardAccessDenied(BoardAccessDeniedException ex) {
         ErrorObject errorObject = new ErrorObject();
