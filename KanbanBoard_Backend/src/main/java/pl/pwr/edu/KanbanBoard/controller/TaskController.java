@@ -29,40 +29,45 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<TaskDto> createTask(@PathVariable Integer columnId,
-                                              @RequestBody CreateTaskRequest request) {
-        TaskDto created = taskService.createTask(columnId, request);
+                                              @RequestBody CreateTaskRequest request,
+                                              @AuthenticationPrincipal User user) {
+        TaskDto created = taskService.createTask(columnId, request, user.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskDto> updateTask(@PathVariable Integer columnId,
                                               @PathVariable Integer taskId,
-                                              @RequestBody CreateTaskRequest request) {
-        TaskDto updated = taskService.updateTask(columnId, taskId, request);
+                                              @RequestBody CreateTaskRequest request,
+                                              @AuthenticationPrincipal User user) {
+        TaskDto updated = taskService.updateTask(columnId, taskId, request, user.getUsername());
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable Integer columnId,
-                                           @PathVariable Integer taskId) {
-        taskService.deleteTask(taskId);
+                                           @PathVariable Integer taskId,
+                                           @AuthenticationPrincipal User user) {
+        taskService.deleteTask(taskId, user.getUsername());
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{taskId}/active")
     public ResponseEntity<TaskDto> updateTaskActive(
             @PathVariable Integer taskId,
-            @RequestBody UpdateTaskStatusRequest request) {
+            @RequestBody UpdateTaskStatusRequest request,
+            @AuthenticationPrincipal User user) {
 
-        TaskDto updated = taskService.updateTaskActive(taskId, request.isActive());
+        TaskDto updated = taskService.updateTaskActive(taskId, request.isActive(), user.getUsername());
         return ResponseEntity.ok(updated);
     }
     @PatchMapping("/{taskId}/position")
     public ResponseEntity<TaskDto> moveTask(
             @PathVariable Integer taskId,
-            @RequestBody ChangeTaskPositionRequest request) {
+            @RequestBody ChangeTaskPositionRequest request,
+            @AuthenticationPrincipal User user) {
 
-        TaskDto taskDto = taskService.moveTask(taskId, request);
+        TaskDto taskDto = taskService.moveTask(taskId, request, user.getUsername());
         return ResponseEntity.ok(taskDto);
     }
 

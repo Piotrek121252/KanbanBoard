@@ -88,6 +88,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(TaskHasTimeEntriesException.class)
+    public ResponseEntity<ErrorObject> handleTaskHasTimeEntriesException(TaskHasTimeEntriesException ex, WebRequest request) {
+        ErrorObject errorObject = new ErrorObject();
+        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        errorObject.setMessage(ex.getMessage());
+        errorObject.setTimestamp(new Date());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorObject);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorObject> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
         ErrorObject errorObject = new ErrorObject();
