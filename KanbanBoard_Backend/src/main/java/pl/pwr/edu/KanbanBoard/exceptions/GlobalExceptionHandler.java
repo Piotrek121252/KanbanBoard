@@ -54,11 +54,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientBoardRoleException.class)
     public ResponseEntity<ErrorObject> handleInsufficientRole(InsufficientBoardRoleException ex) {
         ErrorObject error = new ErrorObject();
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setStatusCode(HttpStatus.FORBIDDEN.value());
         error.setMessage(ex.getMessage());
         error.setTimestamp(new Date());
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(BoardAccessDeniedException.class)
@@ -68,6 +68,15 @@ public class GlobalExceptionHandler {
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorObject);
+    }
+
+    @ExceptionHandler(LastAdminException.class)
+    public ResponseEntity<ErrorObject> handleLastAdminException(LastAdminException ex) {
+        ErrorObject error = new ErrorObject();
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setMessage(ex.getMessage());
+        error.setTimestamp(new Date());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(TimeEntryNotFoundException.class)

@@ -109,7 +109,7 @@ const ColumnEditModal = ({ column, columns, isOpen, onClose, onRefresh }) => {
           Kolor kolumny
           <div className="flex gap-2 mt-1">
             {COLUMN_COLORS.map(({ color, isDefault }) => (
-              <div key={color} className="relative">
+              <div key={`editColumn-${color}`} className="relative">
                 <button
                   type="button"
                   onClick={() => handleColorSelect(color)}

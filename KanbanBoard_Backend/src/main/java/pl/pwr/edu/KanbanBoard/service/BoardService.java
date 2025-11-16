@@ -1,13 +1,11 @@
 package pl.pwr.edu.KanbanBoard.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.board.BoardDto;
 import pl.pwr.edu.KanbanBoard.dto.board.CreateBoardRequest;
 import pl.pwr.edu.KanbanBoard.dto.board.UpdateBoardRequest;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardAccessDeniedException;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.BoardNotFoundException;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.IllegalBoardRoleException;
-import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.InsufficientBoardRoleException;
+import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.*;
 import pl.pwr.edu.KanbanBoard.model.*;
 import pl.pwr.edu.KanbanBoard.repository.BoardMemberRepository;
 import pl.pwr.edu.KanbanBoard.repository.BoardRepository;
@@ -135,12 +133,19 @@ public class BoardService {
     public void removeMember(Integer boardId, Integer userId, String actorUsername) {
         Board board = getBoardEntityById(boardId);
         UserEntity actor = userService.getUserByUsername(actorUsername);
-        requireRole(board, actor, BoardRole.ADMIN);
 
-        BoardMember member = boardMemberRepository.findByBoardAndUser(board, userService.getUserByUserId(userId))
+        BoardMember memberToRemove = boardMemberRepository.findByBoardAndUser(board, userService.getUserByUserId(userId))
                 .orElseThrow(() -> new RuntimeException("Użytkownik nie jest członkiem tej tablicy"));
 
-        boardMemberRepository.delete(member);
+        boolean isSelf = actor.getId().equals(userId);
+
+        if (!isSelf) {
+            requireRole(board, actor, BoardRole.ADMIN);
+        }
+        checkAtLeastOneAdminRemains(board, memberToRemove);
+
+        board.getBoardMembers().remove(memberToRemove);
+        boardMemberRepository.delete(memberToRemove);
     }
 
     public void changeMemberRole(Integer boardId, Integer userId, String newRoleName, String actorUsername) {
@@ -152,6 +157,10 @@ public class BoardService {
                 .orElseThrow(() -> new RuntimeException("Użytkownik nie jest członkiem tej tablicy"));
 
         BoardRole newRole = parseBoardRole(newRoleName);
+
+        if (member.getRole() == BoardRole.ADMIN && newRole != BoardRole.ADMIN) {
+            checkAtLeastOneAdminRemains(board, member);
+        }
 
         member.setRole(newRole);
         boardMemberRepository.save(member);
@@ -167,6 +176,17 @@ public class BoardService {
         BoardMember member = getMembership(board, user);
         if (member.getRole().ordinal() > minimumRole.ordinal()) {
             throw new InsufficientBoardRoleException(minimumRole, member.getRole());
+        }
+    }
+
+    private void checkAtLeastOneAdminRemains(Board board, BoardMember memberToExclude) {
+        long remainingAdmins = board.getBoardMembers().stream()
+                .filter(m -> m.getRole() == BoardRole.ADMIN)
+                .filter(m -> !m.getUser().getId().equals(memberToExclude.getUser().getId()))
+                .count();
+
+        if (remainingAdmins == 0) {
+            throw new LastAdminException("Nie można usunąć ostatniego administratora");
         }
     }
 

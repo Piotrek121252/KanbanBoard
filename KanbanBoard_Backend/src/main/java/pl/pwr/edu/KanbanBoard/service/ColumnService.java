@@ -1,27 +1,38 @@
 package pl.pwr.edu.KanbanBoard.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.pwr.edu.KanbanBoard.dto.column.ColumnDto;
 import pl.pwr.edu.KanbanBoard.dto.column.CreateColumnRequest;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.ColumnNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.Board;
+import pl.pwr.edu.KanbanBoard.model.BoardRole;
 import pl.pwr.edu.KanbanBoard.model.ColumnEntity;
+import pl.pwr.edu.KanbanBoard.model.UserEntity;
 import pl.pwr.edu.KanbanBoard.repository.ColumnRepository;
 import pl.pwr.edu.KanbanBoard.service.mapper.ColumnMapper;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ColumnService {
 
+    private static final Set<String> VALID_COLORS = Set.of(
+            "#3730a3", "#15803d", "#b91c1c", "#b45309", "#0369a1", "#4b5563"
+    );
+
     private final ColumnRepository columnRepository;
     private final BoardService boardService;
     private final ColumnMapper columnMapper;
+    private final UserService userService;
 
-    public ColumnService(ColumnRepository columnRepository, BoardService boardService, ColumnMapper columnMapper) {
+    @Autowired
+    public ColumnService(ColumnRepository columnRepository, BoardService boardService, ColumnMapper columnMapper, UserService userService) {
         this.columnRepository = columnRepository;
         this.boardService = boardService;
         this.columnMapper = columnMapper;
+        this.userService = userService;
     }
 
     public List<ColumnDto> getColumnsByBoardId(Integer boardId) {
@@ -31,8 +42,18 @@ public class ColumnService {
         return columnMapper.toDtoList(columns);
     }
 
-    public ColumnDto createColumn(Integer boardId, CreateColumnRequest request) {
+    public ColumnDto createColumn(Integer boardId, CreateColumnRequest request, String username) {
         Board board = boardService.getBoardEntityById(boardId);
+        UserEntity user = userService.getUserByUsername(username);
+
+        // Sprawdzamy czy użytkownik ma odpowiednią role
+        boardService.requireRole(board, user, BoardRole.EDITOR);
+
+        // Sprawdzamy czy wybrany kolor znajduje się na liście
+        String color = request.color() != null ? request.color() : "#4b5563";
+        if (!VALID_COLORS.contains(color)) {
+            throw new IllegalArgumentException("Nieprawidłowy kolor " + request.color() + ". Dozwolone: " + VALID_COLORS);
+        }
 
         List<ColumnEntity> columns = columnRepository.findByBoardOrderByPosition(board);
         int maxPosition = columns.size() + 1;
@@ -55,34 +76,51 @@ public class ColumnService {
         return columnMapper.apply(saved);
     }
 
-    public ColumnDto updateColumn(Integer boardId, Integer columnId, CreateColumnRequest request) {
+    public ColumnDto updateColumn(Integer boardId, Integer columnId, CreateColumnRequest request, String username) {
         ColumnEntity column = getColumnEntityByIdAndBoard(columnId, boardId);
+        Board board = column.getBoard();
+        UserEntity currentUser = userService.getUserByUsername(username);
 
-        if (request.name() != null)
+        // Sprawdzamy czy użytkownik ma wymaganą role
+        boardService.requireRole(board, currentUser, BoardRole.EDITOR);
+
+        if (request.name() != null) {
             column.setName(request.name());
-        if (request.position() != null)
+        }
+
+        if (request.position() != null) {
             updateColumnPosition(columnId, request.position());
-        if (request.color() != null)
+        }
+
+        if (request.color() != null) {
+            if (!VALID_COLORS.contains(request.color())) {
+                throw new IllegalArgumentException("Nieprawidłowy kolor " + request.color() + ". Dozwolone: " + VALID_COLORS);
+            }
             column.setColor(request.color());
+        }
 
         ColumnEntity saved = columnRepository.save(column);
         return columnMapper.apply(saved);
     }
 
-    public void deleteColumn(Integer boardId, Integer columnId) {
+
+    public void deleteColumn(Integer boardId, Integer columnId, String username) {
         ColumnEntity column = getColumnEntityByIdAndBoard(columnId, boardId);
+        Board board = column.getBoard();
+        UserEntity currentUser = userService.getUserByUsername(username);
+
+        // Sprawdzamy czy użytkownik ma wymaganą role
+        boardService.requireRole(board, currentUser, BoardRole.EDITOR);
 
         if (!column.getTasks().isEmpty()) {
             throw new IllegalStateException("Nie można usunąć kolumny, która ma przypisane zadania");
         }
 
         int deletedPosition = column.getPosition();
-        Board board = column.getBoard();
 
-        // Usuwamy kolumne z repozytorium
         columnRepository.delete(column);
 
-        // Aktualizowanie pozycji pozostałych kolumn
+        // Aktualizacja pozycji pozostałych kolumn
         List<ColumnEntity> columns = columnRepository.findByBoardOrderByPosition(board);
         for (ColumnEntity col : columns) {
             if (col.getPosition() > deletedPosition) {
@@ -90,6 +128,14 @@ public class ColumnService {
             }
         }
         columnRepository.saveAll(columns);
+    }
+
+    public ColumnDto updateColumnPositionWithRoleCheck(Integer columnId, Integer newPosition, String username) {
+        ColumnEntity column = getColumnEntityById(columnId);
+        UserEntity currentUser = userService.getUserByUsername(username);
+        boardService.requireRole(column.getBoard(), currentUser, BoardRole.EDITOR);
+
+        return updateColumnPosition(columnId, newPosition);
     }
 
     public ColumnDto updateColumnPosition(Integer columnId, Integer newPosition) {
