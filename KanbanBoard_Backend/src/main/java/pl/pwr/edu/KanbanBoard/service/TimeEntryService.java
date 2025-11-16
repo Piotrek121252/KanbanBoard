@@ -1,20 +1,15 @@
 package pl.pwr.edu.KanbanBoard.service;
 
 import org.springframework.stereotype.Service;
-import pl.pwr.edu.KanbanBoard.dto.timeEntry.CreateTimeEntryRequest;
-import pl.pwr.edu.KanbanBoard.dto.timeEntry.TimeEntryDto;
-import pl.pwr.edu.KanbanBoard.dto.timeEntry.TimeEntrySummaryDto;
-import pl.pwr.edu.KanbanBoard.dto.timeEntry.UpdateTimeEntryRequest;
+import pl.pwr.edu.KanbanBoard.dto.timeEntry.*;
 import pl.pwr.edu.KanbanBoard.exceptions.customExceptions.TimeEntryNotFoundException;
 import pl.pwr.edu.KanbanBoard.model.*;
 import pl.pwr.edu.KanbanBoard.repository.TimeEntryRepository;
+import pl.pwr.edu.KanbanBoard.service.mapper.TimeEntryBoardUserMapper;
 import pl.pwr.edu.KanbanBoard.service.mapper.TimeEntryMapper;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,17 +20,20 @@ public class TimeEntryService {
     private final UserService userService;
     private final BoardService boardService;
     private final TimeEntryMapper timeEntryMapper;
+    private final TimeEntryBoardUserMapper timeEntryBoardUserMapper;
 
     public TimeEntryService(TimeEntryRepository timeEntryRepository,
                             TaskService taskService,
                             UserService userService,
                             BoardService boardService,
-                            TimeEntryMapper timeEntryMapper) {
+                            TimeEntryMapper timeEntryMapper,
+                            TimeEntryBoardUserMapper timeEntryBoardUserMapper) {
         this.timeEntryRepository = timeEntryRepository;
         this.taskService = taskService;
         this.userService = userService;
         this.timeEntryMapper = timeEntryMapper;
         this.boardService = boardService;
+        this.timeEntryBoardUserMapper = timeEntryBoardUserMapper;
     }
 
     public TimeEntryDto addTimeEntry(Integer taskId, CreateTimeEntryRequest request, String username) {
@@ -165,6 +163,27 @@ public class TimeEntryService {
         }
 
         return summary;
+    }
+
+    public List<TimeEntryBoardUserDto> getBoardUsersWithTimeEntries(Integer boardId) {
+        Board board = boardService.getBoardEntityById(boardId);
+
+        List<UserEntity> currentMembers = board.getBoardMembers().stream()
+                .map(BoardMember::getUser)
+                .toList();
+
+        List<UserEntity> entryUsers = timeEntryRepository.findUsersWithEntriesByBoard(boardId);
+
+        Map<Integer, UserEntity> allUsers = new HashMap<>();
+        currentMembers.forEach(u -> allUsers.put(u.getId(), u));
+        entryUsers.forEach(u -> allUsers.putIfAbsent(u.getId(), u));
+
+        return allUsers.values().stream()
+                .map(user -> timeEntryBoardUserMapper.toDto(
+                        user,
+                        currentMembers.stream().anyMatch(m -> m.getId().equals(user.getId()))
+                ))
+                .toList();
     }
 }
 

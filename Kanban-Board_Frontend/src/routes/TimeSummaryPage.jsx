@@ -8,6 +8,7 @@ const TimeSummaryPage = ({ boardMembers }) => {
   const { id: boardId } = useParams();
   const [cookie] = useCookies(["token"]);
   const [summary, setSummary] = useState([]);
+  const [usersWithTime, setUsersWithTime] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -38,7 +39,7 @@ const TimeSummaryPage = ({ boardMembers }) => {
         setSummary(res.data);
         setDataFetched(true);
       } catch (err) {
-        console.error("Failed to fetch summary:", err);
+        console.error("Nie udało się pobrać podsumowania.", err);
         setSummary([]);
       } finally {
         setLoading(false);
@@ -47,11 +48,31 @@ const TimeSummaryPage = ({ boardMembers }) => {
     [boardId, cookie.token, appliedUserId, appliedMonth, appliedYear]
   );
 
+  const fetchUsersWithTime = useCallback(async () => {
+    if (!cookie.token) return;
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/boards/${boardId}/time-entries/users`,
+        {
+          headers: { Authorization: `Bearer ${cookie.token}` },
+        }
+      );
+
+      setUsersWithTime(res.data);
+    } catch (err) {
+      console.error("Nie udało się pobrać użytkowników do podsumowania:", err);
+    }
+  }, [boardId, cookie.token]);
+
   useEffect(() => {
     if (appliedMonth && appliedYear) {
       fetchSummary();
     }
   }, [fetchSummary, appliedMonth, appliedYear, appliedUserId]);
+
+  useEffect(() => {
+    fetchUsersWithTime();
+  }, [fetchUsersWithTime]);
 
   const formatTime = (minutes) => {
     const h = Math.floor(minutes / 60);
@@ -66,10 +87,6 @@ const TimeSummaryPage = ({ boardMembers }) => {
 
   const getMonthName = (m) =>
     new Date(0, m - 1).toLocaleString("pl-PL", { month: "long" });
-
-  const selectedUser =
-    boardMembers?.find((m) => m.userId === selectedUserId)?.username ||
-    "wszyscy użytkownicy";
 
   const handleFetchClick = () => {
     setAppliedMonth(month);
@@ -99,9 +116,9 @@ const TimeSummaryPage = ({ boardMembers }) => {
             className="p-2 rounded-md bg-gray-700 text-gray-100 min-w-[180px]"
           >
             <option value="">Wszyscy użytkownicy</option>
-            {boardMembers?.map((m) => (
-              <option key={m.userId} value={m.userId}>
-                {m.username}
+            {usersWithTime.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.username} {u.isCurrentMember ? "" : "▪ BYŁY CZŁONEK"}
               </option>
             ))}
           </select>
@@ -144,20 +161,17 @@ const TimeSummaryPage = ({ boardMembers }) => {
       </div>
 
       {dataFetched && (
-        <h2 className="text-gray-200 text-lg font-semibold mb-3">
-          Podsumowanie czasu pracy —{" "}
-          <span className="text-blue-400 capitalize">
+        <h2 className="text-lg font-semibold text-gray-100 mb-3">
+          Podsumowanie czasu pracy —
+          <span className="text-blue-400 ml-1">
             {getMonthName(appliedMonth)} {appliedYear}
-          </span>{" "}
-          {appliedUserId ? (
-            <span className="text-yellow-400 font-medium">
-              {boardMembers?.find((m) => m.userId === appliedUserId)?.username}
-            </span>
-          ) : (
-            <span className="text-yellow-400 font-medium">
-              Wszyscy użytkownicy
-            </span>
-          )}
+          </span>
+          <span className="text-gray-400 mx-2">•</span>
+          <span className="text-yellow-400">
+            {appliedUserId
+              ? usersWithTime.find((u) => u.id === appliedUserId)?.username
+              : "Wszyscy użytkownicy"}
+          </span>
         </h2>
       )}
 
