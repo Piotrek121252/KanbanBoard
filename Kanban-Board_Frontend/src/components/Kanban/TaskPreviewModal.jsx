@@ -339,10 +339,10 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
               </p>
               <span
                 className={`text-xs font-semibold ${
-                  task.isActive ? "text-green-400" : "text-red-400"
+                  task.isActive ? "text-green-400" : "text-blue-400"
                 }`}
               >
-                {task.isActive ? "Active" : "Inactive"}
+                {task.isActive ? "Active" : "Archived"}
               </span>
             </div>
 

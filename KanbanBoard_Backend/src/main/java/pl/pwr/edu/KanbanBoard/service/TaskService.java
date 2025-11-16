@@ -55,7 +55,12 @@ public class TaskService {
         task.setDescription(request.description());
         task.setIsActive(request.isActive() != null ? request.isActive() : true);
         task.setCreatedDate(LocalDateTime.now());
-        task.setDueDate(request.dueDate());
+        if (request.dueDate() != null) {
+            if (request.dueDate().isBefore(task.getCreatedDate())) {
+                throw new IllegalArgumentException("Deadline nie może być przed datą utworzenia zadania.");
+            }
+            task.setDueDate(request.dueDate());
+        }
         task.setPriority(request.priority() != null ? request.priority() : TaskPriority.MEDIUM);
 
         // Obliczenie posycji dla nowego zadania
@@ -86,7 +91,12 @@ public class TaskService {
 
         if (request.name() != null) task.setName(request.name());
         if (request.description() != null) task.setDescription(request.description());
-        if (request.dueDate() != null) task.setDueDate(request.dueDate());
+        if (request.dueDate() != null) {
+            if (request.dueDate().isBefore(task.getCreatedDate())) {
+                throw new IllegalArgumentException("Deadline nie może być przed datą utworzenia zadania.");
+            }
+            task.setDueDate(request.dueDate());
+        }
         if (request.isActive() != null) task.setIsActive(request.isActive());
         if (request.priority() != null) task.setPriority(request.priority());
 

@@ -80,10 +80,10 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
 
           <span
             className={`font-medium ${
-              isActive ? "text-green-400" : "text-red-400"
+              isActive ? "text-green-400" : "text-blue-400"
             }`}
           >
-            {isActive ? "Active" : "Inactive"}
+            {isActive ? "Active" : "Archived"}
           </span>
         </div>
 

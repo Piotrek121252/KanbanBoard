@@ -65,7 +65,7 @@ public class CommentService {
         boolean isOwner = comment.getUser().getId().equals(user.getId());
 
         if (!isOwner) {
-            // Admin or Editor can delete others’ comments
+            // Komentarze mogą być usunięte przez Admina lub właściciela
             try {
                 boardService.requireRole(board, user, BoardRole.ADMIN);
             } catch (InsufficientBoardRoleException ex) {
