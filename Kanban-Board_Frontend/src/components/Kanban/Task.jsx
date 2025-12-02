@@ -96,9 +96,9 @@ const Task = ({ task, onEdit, onDelete, onPreview, onToggleActive }) => {
           </span>
 
           <div className="flex items-center gap-2">
-            <div className="text-[10px] text-yellow-400 mt-1">
+            {/* <div className="text-[10px] text-yellow-400 mt-1">
               Position: {task.position ?? "N/A"}
-            </div>
+            </div> */}
 
             <button
               type="button"

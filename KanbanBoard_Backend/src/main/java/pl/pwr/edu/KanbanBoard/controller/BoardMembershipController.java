@@ -1,6 +1,7 @@
 package pl.pwr.edu.KanbanBoard.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -28,8 +29,12 @@ public class BoardMembershipController {
     public ResponseEntity<Void> addMember(@PathVariable Integer boardId,
                                           @RequestBody AddMemberRequest request,
                                           @AuthenticationPrincipal User user) {
+
         boardService.addMember(boardId, request.userId(), request.role(), user.getUsername());
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .build();
     }
 
     @DeleteMapping("/{userId}")

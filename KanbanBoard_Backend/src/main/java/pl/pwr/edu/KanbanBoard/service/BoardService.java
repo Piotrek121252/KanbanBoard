@@ -135,7 +135,7 @@ public class BoardService {
         UserEntity actor = userService.getUserByUsername(actorUsername);
 
         BoardMember memberToRemove = boardMemberRepository.findByBoardAndUser(board, userService.getUserByUserId(userId))
-                .orElseThrow(() -> new RuntimeException("Użytkownik nie jest członkiem tej tablicy"));
+                .orElseThrow(() -> new IllegalArgumentException("Użytkownik nie jest członkiem tej tablicy"));
 
         boolean isSelf = actor.getId().equals(userId);
 
@@ -154,7 +154,7 @@ public class BoardService {
         requireRole(board, actor, BoardRole.ADMIN);
 
         BoardMember member = boardMemberRepository.findByBoardAndUser(board, userService.getUserByUserId(userId))
-                .orElseThrow(() -> new RuntimeException("Użytkownik nie jest członkiem tej tablicy"));
+                .orElseThrow(() -> new IllegalArgumentException("Użytkownik nie jest członkiem tej tablicy"));
 
         BoardRole newRole = parseBoardRole(newRoleName);
 

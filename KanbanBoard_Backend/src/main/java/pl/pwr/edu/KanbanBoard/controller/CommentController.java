@@ -1,6 +1,7 @@
 package pl.pwr.edu.KanbanBoard.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -29,10 +30,14 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<CommentDto> addComment(@PathVariable Integer taskId,
-                                 @RequestBody CreateCommentRequest request,
-                                 @AuthenticationPrincipal User user) {
+                                                 @RequestBody CreateCommentRequest request,
+                                                 @AuthenticationPrincipal User user) {
+
         CommentDto created = commentService.addComment(taskId, user.getUsername(), request.comment());
-        return ResponseEntity.ok(created);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(created);
     }
 
     @DeleteMapping("/{commentId}")

@@ -66,7 +66,7 @@ public class TimeEntryService {
 
         UserEntity user = userService.getUserByUsername(username);
         if (!entry.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Użytkownik nie może usunąć tego wpisu.");
+            throw new IllegalArgumentException("Użytkownik nie może edytować tego wpisu.");
         }
 
         entry.setMinutesSpent(request.minutesSpent());
