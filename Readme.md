@@ -45,31 +45,43 @@ Aplikacja webowa wspomagająca zarządzanie projektami informatycznymi oparta o 
 ---
 
 Strona Główna
+
 ![Strona Główna](./images/Homepage_logged_in.png)
 
 Lista dostępnych tablic
+
 ![Lista dostępnych tablic](./images/Boards_page.png)
 
 Lista użytkowników
+
 ![Lista użytkowników](./images/Member_list.png)
 
 Tablica Kanban
+
 ![Main kanban board](./images/Kanban_Board_moving_task.png)
 
 Szczegółowe informacje o zadaniu
+
 ![Detailed task info](./images/Task_preview.png)
 
 Komentarze pod zadaniem
+
 ![Komentarze](./images/Comments_Task.png)
 
 Dodawanie wpisów czasu pracy
+
 ![Wpisy czasu pracy](./images/Rejestracja_czasu.png)
 
 Edycja kolumny
+
 ![Edycja kolumny](./images/Column_edit.png)
+
 Edycja zadania
+
 ![Edycja zadania](./images/Task_edit.png)
+
 Podsumowanie czasu pracy
+
 ![Podsumowanie czasu pracy](./images/Podsumowanie_czasu_pracy.png)
 
 Aplikacja stworzona przez: Piotr Komarnicki
