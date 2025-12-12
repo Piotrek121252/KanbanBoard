@@ -11,7 +11,6 @@ import pl.pwr.edu.KanbanBoard.dto.timeEntry.TimeEntryDto;
 import pl.pwr.edu.KanbanBoard.dto.timeEntry.UpdateTimeEntryRequest;
 import pl.pwr.edu.KanbanBoard.service.TimeEntryService;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController

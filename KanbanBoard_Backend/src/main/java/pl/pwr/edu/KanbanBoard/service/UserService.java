@@ -105,7 +105,6 @@ public class UserService {
         }
     }
 
-
     public void removeFavoriteBoard(String username, Integer boardId) {
         UserEntity user = getUserByUsername(username);
         // Sprawdzamy czy instnieje taka tablica

@@ -49,14 +49,12 @@ const TaskPreviewModal = ({ task, isOpen, onClose, boardMembers }) => {
 
   const fetchTimeEntries = useCallback(async () => {
     if (!task?.id) return;
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/tasks/${task.id}/time-entries?year=${year}&month=${month}`,
+        `http://localhost:8080/api/tasks/${task.id}/time-entries`,
         { headers: { Authorization: `Bearer ${cookie.token}` } }
       );
+
       setTimeEntries(
         res.data.sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
       );

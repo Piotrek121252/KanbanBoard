@@ -165,6 +165,7 @@ public class TimeEntryService {
         return summary;
     }
 
+
     public List<TimeEntryBoardUserDto> getBoardUsersWithTimeEntries(Integer boardId) {
         Board board = boardService.getBoardEntityById(boardId);
 

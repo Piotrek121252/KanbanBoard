@@ -1,6 +1,7 @@
 package pl.pwr.edu.KanbanBoard.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.pwr.edu.KanbanBoard.dto.authentication.AuthResponseDto;
@@ -27,6 +28,11 @@ public class AuthController {
     }
     @PostMapping("register")
     public ResponseEntity<String> register(@RequestBody RegisterRequestDto registerRequestDto) {
-        return ResponseEntity.ok(userService.register(registerRequestDto));
+
+        String result = userService.register(registerRequestDto);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(result);
     }
 }
