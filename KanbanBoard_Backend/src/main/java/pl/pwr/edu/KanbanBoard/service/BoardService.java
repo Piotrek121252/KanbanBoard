@@ -45,7 +45,6 @@ public class BoardService {
                 .collect(Collectors.toList());
     }
 
-
     public BoardDto getBoardById(Integer id, String username) {
         UserEntity user = userService.getUserByUsername(username);
         Board board = getBoardEntityById(id);
@@ -72,6 +71,7 @@ public class BoardService {
         owner.setBoard(saved);
         owner.setUser(currentUser);
         owner.setRole(BoardRole.ADMIN);
+
         boardMemberRepository.save(owner);
 
         createDefaultColumns(saved);
